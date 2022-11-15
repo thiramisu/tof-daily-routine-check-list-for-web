@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>幻塔 Daily Routine Check List for Web</title>
   <link href="style.css" rel="stylesheet">
 </head>
@@ -120,6 +121,13 @@
             <li>変更したいものを[右クリック]&gt;[「(名前)」を編集]で編集、終わったら[Enter]で確定</li>
             <li>このページを再読み込みする</li>
           </ol>
+          <div>
+            対応環境などについて
+            PC/Chrome以外での動作は未確認です。
+            自分のスマホだとUIが豆粒になるので、横画面にして拡大率も調整する必要があるかも。
+            また、いくつかの機能が動かない可能性もあります。
+            「最前面表示」は技術的に不可能そうなので未実装です。それに伴い、「みにまむ」も未実装です。
+          </div>
         </div>
       </div>
     </article>
@@ -1515,11 +1523,11 @@ ${ todos.flatMap(this.#toOverrideTodoRec).join("\n") }
           alert(`[バージョン情報]
 幻塔 Daily Routine Check List for Web
 ver. 0.1
-programmed by ラスミティ @2022/11/03
+programmed by ラスミティ @2022/11/16
 
 Original:
 幻塔 Daily Routine Check List
-ver. 0.2β
+ver. 0.2.1β
 programmed by 029chan @2022/11/01
 `
           );
