@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>幻塔 Daily Routine Check List for Web</title>
+  <link href="style.css" rel="stylesheet">
+</head>
+<body>
+  <header class="menu">
+    <select id="functions" class="menu-dropdown">
+      <option value="default">機能</option>
+      <option value="monthly-reset">月間課題の進捗を初期化</option>
+      <option value="weekly-reset">週間課題の進捗を初期化</option>
+      <option value="daily-reset">日間課題の進捗を初期化</option>
+      <option>----------------</option>
+      <option value="stamina-delta-change">活力回復のタイミングを調整</option>
+      <option value="clear-save" class="caution">初期化</option>
+    </select>
+    <select id="help" class="menu-dropdown">
+      <option value="default">ヘルプ</option>
+      <option value="version-info">バージョン情報</option>
+    </select>
+    <label class="menu-dropdown">ini読み込み<input id="ini" type="file" class="transparent-input" multiple webkitdirectory></label>
+    <select id="ini-save" class="menu-dropdown">
+      <option value="default">ini保存</option>
+      <option value="config">config.ini</option>
+      <option value="savedata">savedata.ini</option>
+      <option value="checklist">checklist.ini</option>
+      <option value="override">override.ini</option>
+      <option value="rengo">rengo.ini</option>
+      <option value="stamina">stamina.ini</option>
+      <option value="island">island.ini</option>
+    </select>
+    <a id="dummy-link" class="dummy-link" hidden>保存</a>
+  </header>
+  <main>
+    <article id="checklist">
+      <div class="control">
+        絞り込み条件：
+        <label class="label"><input id="monthly-filter" type="checkbox" class="checkbox">月課</label>
+        <label class="label"><input id="weekly-filter" type="checkbox" class="checkbox">週課</label>
+        <label class="label"><input id="daily-filter" type="checkbox" class="checkbox">日課</label>
+        <select id="has-done-filter" class="filter-select">
+          <option value="0">全て</option>
+          <option value="1">未達成のもの</option>
+          <option value="2">達成済のもの</option>
+        </select>
+        <button type="button" id="apply-filter" class="filter-button">一覧を更新</button>
+      </div>
+      <table class="progress-table">
+        <thead>
+          <tr>
+            <th class="th-no">No.</th>
+            <th class="th-kind">種別</th>
+            <th class="th-name">内容</th>
+            <th class="th-progress">進捗</th>
+            <th class="th-minus">減算</th>
+            <th class="th-plus">加算</th>
+            <th>次回更新</th>
+          </tr>
+        </thead>
+        <tbody id="todo">
+        </tbody>
+      </table>
+    </article>
+    <article id="rengo" hidden>
+      <div class="control caution">
+        ※サーバー側の仕様変更があった場合、この情報は正しくなくなります。あくまでも参考までに！
+      </div>
+      <table id="rengo-table" class="rengo-table">
+        <thead>
+          <th>曜日</th>
+          <th>詳細</th>
+        </thead>
+      </table>
+    </article>
+    <article id="stamina" hidden>
+      <div class="control">
+        活力：<span id="current-stamina">999</span> / <span id="max-stamina">999</span>
+        　全回復まであと <span id="stamina-timer">00:00:00</span>
+        <span></span>
+        <button id="stamina-full" type="button" class="filter-button">全回復</button>
+      </div>
+      <div id="stamina-control" class="control">
+      </div>
+      <table class="stamina-table">
+        <thead>
+          <th>活力</th>
+          <th>時刻</th>
+        </thead>
+        <tbody id="est-stamina">
+        </tbody>
+      </table>
+    </article>
+    <article id="island-building" hidden>
+      <div class="control caution">
+        ※1体あたり±1程度の誤差があります。あくまでも参考までに！<br>マップ読み込み時に死ぬ2体？は入っていません。<br>たまに水辺の動物が自動的に死ぬためか、装飾は非常にズレやすいです。
+      </div>
+      <table>
+        <thead>
+          <tr id="island-header">
+            <th>名前</th>
+          </tr>
+        </thead>
+        <tbody id="island-body" class="island-tbody">
+          <tr id="island-inputs" class="input-tr">
+            <td>初期値</td>
+          </tr>
+        </tbody>
+      </table>
+    </article>
+    <article id="about" hidden>
+      <div class="control">
+        <div>
+          PC(Chrome/Edge系)の場合、手順は少し複雑ですが、ダウンロードなどなしで設定を変更できます。
+          <ol>
+            <li>[F12]を押し、開発者ツールを開く</li>
+            <li>上の"要素"タブの並びから[アプリケーション]タブを選択</li>
+            <li>左の"ストレージ"内の[ローカルストレージ]を展開し、このサイトのURLと同じものを[クリック]して開く</li>
+            <li>変更したいものを[右クリック]&gt;[「(名前)」を編集]で編集、終わったら[Enter]で確定</li>
+            <li>このページを再読み込みする</li>
+          </ol>
+        </div>
+      </div>
+    </article>
+    <nav id="main-nav" class="sidebar">
+      <!-- <button>だと文字方向弄れなさそうなので<div> -->
+      <div id="nav-checklist" class="tab selected">日課･週課</div>
+      <div id="nav-rengo" class="tab">連合耐性</div>
+      <div id="nav-stamina" class="tab">活力</div>
+      <div id="nav-island-building" class="tab">人工島建設</div>
+      <div id="nav-about" class="tab">使い方など</div>
+    </nav>
+  </main>
+  <textarea id="memo" class="memo" placeholder="メモ欄です、バグなどで消失の可能性があるので注意！"></textarea>
+  <footer class="footer"><span id="rengo-banner" class="rengo-banner"></span><span id="clock" class="clock">2022/08/11 9:00:00</span></footer>
+  <div id="file-drop-overlay" class="file-drop-overlay" hidden>
+    <div class="overlay-info">
+      <p>.iniファイルをドロップすると読み込めます。</p>
+      <p>フォルダごとドロップも可能です。</p>
+    </div>
+  </div>
+  <script>
+window.addEventListener("load", () => {
+  "use strict";
+  const
+    Const = Object.freeze({
+      CycleTypeName: {
+        0: "日課",
+        1: "週課",
+        2: "月課"
+      },
+      wdayName: ["日", "月", "火", "水", "木", "金", "土"],
+      SaveName: {
+        config: "tof_config",
+        savedata: "tof_savedata",
+        checklist: "tof_checklist",
+        override: "tof_override",
+        rengo: "tof_rengo",
+        stamina: "tof_stamina",
+        island: "tof_island",
+      },
+      DefaultData: {
+        checklist: `LAST_UPDATE = 1970/01/01 00:00:00
+CHECK_LIST
+REC = 0	闇市プレゼント	1	0
+REC = 0	UFOキャッチャー	1	0
+REC = 0	訓練	2	0
+REC = 0	境界戦闘NormalAuto	4	0
+REC = 0	星界（消化または確認）	1	0
+REC = 0	ミラポリス(オアシスクラブ)プレーンクルーズ	1	0
+REC = 0	ミラポリス(オアシスクラブ)レーザー回廊	1	0
+REC = 0	ミラポリス(鏡花堂)ターゲットヒット	1	0
+REC = 0	ミラポリス(鏡花堂)ビートリズム	1	0
+REC = 0	ミラポリス(資産管理センター)元素マジック箱	1	0
+REC = 0	ミラポリス(資産管理センター)箱運び	1	0
+REC = 0	灰域	6	0
+REC = 1	クレアおばさん	7	0
+REC = 1	討伐作戦	3	0
+REC = 1	人口島ボス	4	0
+REC = 1	在りし日の幻	3	0
+REC = 1	今週の活躍値	1	0
+REC = 1	ワームホール	8	0
+REC = 2	(月更新サンプル)	1	0
+`,
+        rengo: `TABLE
+REC = 0	ハイエナアリーナ	炎・雷抵抗	
+REC = 0	深海訓練所	物理・雷抵抗	
+REC = 0	時空訓練場	氷・炎抵抗	
+REC = 0	ロストバレー		炎・氷強化
+REC = 0	最終公演		物理・雷強化
+REC = 1	隔離区域		
+REC = 1	最終公演		物理・雷強化
+REC = 2	深海基地	物理・氷抵抗	
+REC = 2	ロストバレー		炎・氷強化
+REC = 3	ハイエナアリーナ	炎・雷抵抗	
+REC = 3	最終公演		物理・雷強化
+REC = 4	深海訓練所	物理・雷抵抗	
+REC = 4	ロストバレー		炎・氷強化
+REC = 5	時空訓練場	氷。炎抵抗	
+REC = 5	最終公演		物理・雷強化
+REC = 6	隔離区域		
+REC = 6	深海基地	物理・氷抵抗	
+REC = 6	ロストバレー		炎・氷強化
+`,
+        island: `HEADER = 金属	繊維	エナジー	補給	装飾	建材	複合
+TABLE
+REC = 0号-円形間	630	630	0	0	0	0	0
+REC = 円形右下	630	630	0	0	0	0	0
+REC = 円形闘技場+アポ	420	420	72	72	0	50	50
+REC = 円形左下	132	130	0	0	0	0	0
+REC = 簡易ふ頭	0	0	1280	1280	0	0	0
+REC = 簡易ふ頭左下	0	0	157	157	0	0	0
+REC = その上	0	0	840	840	0	0	0
+REC = 簡易ふ頭左上	0	0	496	496	0	0	0
+REC = パドル湖右上	347	347	0	0	0	0	0
+REC = ロベラグ	72	72	72	72	0	50	50
+REC = パドル湖右下	840	840	0	0	0	0	0
+REC = イーグルの巣	545	545	0	0	0	0	0
+REC = グラトニー	72	72	72	72	0	50	50
+REC = シーゲート	599	599	0	0	0	0	0
+REC = 鉱山拠点	0	0	1150	1150	0	0	0
+REC = 鉱山拠点の上	513	513	0	0	0	0	0
+REC = バルバロッサ	72	72	72	72	0	50	50
+REC = 鉄さびキャンプ	0	0	1228	1228	0	0	0
+REC = 鉄さびキャンプ左	514	514	0	0	0	0	0
+REC = 野生動物	0	0	0	0	5400	0	0
+`,
+        stamina: `MAX = 180
+STEP = 30
+REGENERATION_MINUTES = 8
+BUTTONS = -90,-30,30
+`,
+        override: `OVERRIDE
+REC = ワームホール	5	2022/08/11	５日
+`,
+        config: `DATE_CHANGE_HOUR = 5
+WINDOW_TOPMOST = True
+WINDOW_POSITION = 0	0	160	28
+MINI_WINDOW_POSITION = -7	911
+`,
+        get savedata() {
+          return `STAMINA_ZERO_TIME = ${ Date.now() }
+ISLAND_VALUES = 0	0	0	0	0	0	0
+FILTER_DURATION = 0
+FILTER_HAS_DONE = 0
+`;
+        }
+      },
+    });
+  
+  const
+    parseInt = string => window.parseInt(string),
+    $id = id => document.getElementById(id),
+    $elm = tagName => document.createElement(tagName),
+    $timeFormatter = new Intl.DateTimeFormat("ja-JP", {
+      dateStyle: "short",
+      timeStyle: "medium"
+    }),
+    $time = date => $timeFormatter.format(date),
+    $timeFormatter2 = new Intl.DateTimeFormat("ja-JP", {
+      timeStyle: "short"
+    }),
+    $time2 = date => $timeFormatter2.format(date),
+    $time3 = time => {
+      time = time < 0 ? 0 : time;
+      const
+        mSeconds = time % 1000,
+        seconds = ((time - mSeconds) / 1000) % 60,
+        minutes = ((time - mSeconds - seconds * 1000) / 60000) % 60,
+        hours =  (time - mSeconds - seconds * 1000 - minutes * 60000) / 3600000;
+      return `${ hours }:${ minutes < 10 ? "0" : ""}${ minutes }:${ seconds < 10 ? "0" : ""}${ seconds }`;
+    },
+    $timeFormatter4 = new Intl.DateTimeFormat("ja-JP", {
+      dateStyle: "short"
+    }),
+    $time4 = date => $timeFormatter4.format(date);
+    
+  class Todo {
+    /**
+     * @param {SaveData} saveData
+     * @param {number} id
+     * @param {number} cycleType 0なら日課、1なら週課
+     * @param {string} name
+     * @param {number} progressMax
+     * @param {number} progressCurrent
+     */
+    constructor(saveData, id, cycleType, name, progressMax, progressCurrent) {
+      this.#saveData = saveData;
+      this.#id = id;
+      this.#cycleType = cycleType;
+      this.#name = name;
+      this.#progressBar = new ProgressBar(progressMax, progressCurrent);
+    }
+    
+    reset() {
+      this.#progressBar.setCurrent(0);
+    }
+    
+    /**
+     * @param {boolean} isVisible
+     */
+    setVisible(isVisible) {
+      this.tr.hidden = !isVisible;
+    }
+    
+    toRec() {
+      return `REC = ${ this.#cycleType }\t${ this.#name }\t${ this.#progressBar.max }\t${ this.#progressBar.current }`
+    }
+
+    /**
+     * @param {number} [cycleTypeFlags] 1=日課, 2=週課 の論理和。0(規定値)なら全て
+     * @param {number} [hasDoneFlags] 1=未達成, 2=達成 の論理和。0(規定値)なら全て
+     * @returns {boolean}
+     */
+    filterer(cycleTypeFlags = 0, hasDoneFlags = 0) {
+      return (cycleTypeFlags === 0
+        || ((cycleTypeFlags & (1 << this.#cycleType)) !== 0)
+      ) && (hasDoneFlags === 0
+        || ((hasDoneFlags & (1 << this.hasDone)) !== 0)
+      );
+    }
+      
+    get tr() {
+      return this.#tr ?? this.#createTR();
+    }
+    
+    get hasDone() {
+      return this.#progressBar.max === this.#progressBar.current;
+    }
+
+    get saveData() { return this.#saveData; }
+    get name() { return this.#name; }
+    
+    #createTR() {
+      const tr = $elm("tr");
+      tr.append(
+        ...([this.#id, Const.CycleTypeName[this.#cycleType], this.#name].map((content) => {
+          const td = $elm("td");
+          td.textContent = content;
+          return td;
+        }))
+      );
+      const 
+        button1 = $elm("button"),
+        button2 = $elm("button");
+      button1.type = button2.type = "button";
+      button1.classList.add("progress-button");
+      button2.classList.add("progress-button");
+      button1.textContent = "－";
+      button2.textContent = "＋";
+      button1.addEventListener("click", () => { this.#progressBar.decrease(); this.#saveData.saveAll(); });
+      button2.addEventListener("click", () => { this.#progressBar.increase(); this.#saveData.saveAll(); });
+      tr.append(
+        ...([this.#progressBar.div, button1, button2].map((content) => {
+          const td = $elm("td");
+          td.appendChild(content);
+          return td;
+        }))
+      );
+      this.#tr = tr;
+      return tr;
+    }
+    
+    #saveData;
+    #id;
+    #cycleType;
+    #name;
+    #tr;
+    #progressBar;
+  }
+
+  /**
+   * @typedef {Object} OverrideOption
+   * @property {number} durationDays
+   * @property {number} zeroTime
+   * @property {string} durationString
+   */
+    
+  class TodoOverride extends Todo {
+    /**
+     * @param {SaveData} saveData
+     * @param {number} id
+     * @param {number} cycleType 0なら日課、1なら週課 フィルタに使う
+     * @param {string} name
+     * @param {number} progressMax
+     * @param {number} progressCurrent
+     * @param {OverrideOption} overrideOption
+     */
+    constructor(saveData, id, cycleType, name, progressMax, progressCurrent, overrideOption) {
+      super(saveData, id, cycleType, name, progressMax, progressCurrent);
+      this.#durationDays = overrideOption.durationDays;
+      this.#nextDate = this.#convertUTCDayToLocalDay(overrideOption.date);
+      this.#durationString = overrideOption.durationString;
+    }
+      
+    reset() { return; }
+
+    /**
+     * @param {Date} nowIngame ゲーム内時間
+     */
+    resetIfNeeded(nowIngame) {
+      if (!this.getWillReset(nowIngame)) {
+          return;
+      }
+      super.reset();
+      this.#calcNextDate(nowIngame);
+    }
+
+    toOverrideRec() {
+      return `REC = ${ this.name }\t${ this.#durationDays }\t${ $time4(this.#nextDate) }\t${ this.#durationString }`;
+    }
+      
+    get tr() {
+      return this.#tr ?? this.#createTR();
+    }
+
+    getWillReset(nowIngame = this.saveData.getIngameDate()) {
+      return this.#nextDate.getTime() <= nowIngame.getTime();
+    }
+
+    get #duration() {
+      return this.#durationDays * 24 * 60 * 60 * 1000;
+    }
+
+    #applyToInput() {
+      const nextDate = this.#nextDate;
+      this.#input.value = `${ nextDate.getFullYear() }-${ nextDate.getMonth() < 9 ? "0" : "" }${ nextDate.getMonth() + 1 }-${ nextDate.getDate() <= 9 ? "0" : "" }${ nextDate.getDate() }`
+    }
+
+    #calcNextDate(nowIngame = this.saveData.getIngameDate()) {
+      this.#nextDate = new Date(Math.ceil((nowIngame.getTime() - this.#nextDate.getTime()) / this.#duration) * this.#duration + this.#nextDate.getTime());
+      this.#applyToInput();
+    }
+
+    #convertUTCDayToLocalDay(date) {
+      return new Date(date.getTime() + date.getTimezoneOffset() * 60 * 1000);
+    }
+
+    #createTR() {
+      const
+        tr = super.tr,
+        td = $elm("td"),
+        input = $elm("input");
+      input.type = "date";
+      input.classList.add("next-date");
+      input.addEventListener("change", (e) => {
+        this.#nextDate = this.#convertUTCDayToLocalDay(e.target.valueAsDate);
+        this.#calcNextDate();
+        this.saveData.saveAll();
+      });
+      td.appendChild(input);
+      tr.appendChild(td);
+      tr.children[1].textContent = this.#durationString;
+      this.#tr = tr;
+      this.#input = input;
+      this.#applyToInput();
+      return tr;
+    }
+
+    #durationDays;
+    #nextDate;
+    #durationString;
+    #tr;
+    #input;
+  }
+  
+  class ProgressBar {
+    /**
+     * @param {number} max
+     * @param {number} current
+     */
+    constructor(max, current) {
+      this.#max = max;
+      this.#createDiv();
+      this.setCurrent(current);
+    }
+    
+    increase() {
+      this.setCurrent(this.#current + 1);
+      return this;
+    }
+    
+    decrease() {
+      this.setCurrent(this.#current - 1);
+      return this;
+    }
+    
+    /**
+     * @param {number} number
+     */
+    setCurrent(number) {
+      this.#current = Math.min(Math.max(number, 0), this.#max);
+      if (this.#inner === undefined) {
+        return;
+      }
+      this.#inner.style.width = `calc(100% * ${ this.#current } / ${ this.#max })`;
+      this.#text.textContent = `${this.#current} / ${ this.#max }`;
+      return this;
+    }
+    
+    get div() { return this.#div ?? this.#createDiv(); }
+    get max() { return this.#max; }
+    get current() { return this.#current; }
+
+    #createDiv() {
+      const
+        outer = $elm("div"),
+        inner = $elm("div"),
+        text = $elm("div");
+      outer.classList.add("progress-bar-outer");
+      inner.classList.add("progress-bar-inner");
+      text.classList.add("progress-bar-text");
+      outer.appendChild(inner);
+      outer.appendChild(text);
+      this.#div = outer;
+      this.#inner = inner;
+      this.#text = text;
+      return outer;
+    }
+    
+    #max;
+    #current;
+    #div;
+    #inner;
+    #text;
+  }
+  
+  class TodoManager {
+    /**
+     * @param {SaveData} data
+     */
+    constructor(saveData) {
+      const todos = saveData.todos;
+      this.#todos = todos;
+      this.#saveData = saveData;
+      
+      $id("todo").append(...todos.map((todo) => todo.tr));
+
+      const durationFlag = saveData.getAsNumber("filterDuration");
+      this.#daily = $id("daily-filter");
+      this.#daily.checked = (durationFlag & 1) !== 0;
+      this.#weekly = $id("weekly-filter");
+      this.#weekly.checked = (durationFlag & 2) !== 0;
+      this.#monthly = $id("monthly-filter");
+      this.#monthly.checked = (durationFlag & 4) !== 0;
+        
+      this.#hasDone = $id("has-done-filter");
+      this.#hasDone.value = saveData.get("filterHasDone");
+
+      this.#filter();
+      
+      for (const element of [this.#daily, this.#weekly, this.#monthly, this.#hasDone]) {
+        element.addEventListener("change", this.#filter.bind(this));
+      }
+      $id("apply-filter").addEventListener("click", this.#filter.bind(this));
+      
+      $id("functions").addEventListener("change", ((e) => {
+        switch(e.target.value) {
+          case "monthly-reset":
+            if (window.confirm("[進捗の初期化]\n月間課題の進捗を初期化します。\nよろしいですか？")) {
+              this.reset(4);
+            }
+            break;
+          case "weekly-reset":
+            if (window.confirm("[進捗の初期化]\n週間課題の進捗を初期化します。\nよろしいですか？")) {
+              this.reset(2);
+            }
+            break;
+          case "daily-reset":
+            if (window.confirm("[進捗の初期化]\n日間課題の進捗を初期化します。\nよろしいですか？")) {
+              this.reset(1);
+            }
+            break;
+          default:
+            return;
+        }
+        e.target.value = "default";
+      }).bind(this));
+    }
+    
+    /**
+     * @param {number} cycleTypeFlags 1=日課, 2=週課 の論理和。0なら全て
+     */
+    reset(cycleTypeFlags, nowIngame = this.#saveData.getIngameDate()) {
+      for (const todo of this.#todos) {
+        if (todo.filterer(cycleTypeFlags)) {
+          todo.reset();
+        }
+        todo.resetIfNeeded?.(nowIngame);
+      }
+      this.#saveData.saveAll();
+    }
+
+    getWillResetOverrideNames() {
+      return this.#todos.flatMap(this.#overridedAndWillReset);
+    }
+
+    #filter() {
+      const 
+        durationFlag = this.#daily.checked + this.#weekly.checked * 2 + this.#monthly.checked * 4,
+        hasDoneFlag = parseInt(this.#hasDone.value);
+      for (const todo of this.#todos) {
+        todo.setVisible(
+          todo.filterer(
+            durationFlag,
+            hasDoneFlag
+          )
+        );
+      }
+      this.#saveData.set("filterDuration", durationFlag);
+      this.#saveData.set("filterHasDone", hasDoneFlag);
+    }
+
+    #overridedAndWillReset(todo) {
+      return todo.getWillReset?.() ? todo.name : [];
+    }
+    
+    #todos;
+    #saveData;
+    #daily;
+    #weekly;
+    #monthly;
+    #hasDone;
+  }
+  
+  class WdayRengo {
+    /**
+     * @param {number} wday 日曜日=0から始まる曜日を表す数字
+     */
+    constructor(wday) {
+      this.#wday = wday;
+      this.#nameDescriptionPairs = new Map();
+    }
+    
+    add({ name, description }) {
+      this.#nameDescriptionPairs.set(name, description);
+    }
+    
+    setActive(isActive) {
+      if (isActive) {
+        const [sample_name, sample_description] = this.#nameDescriptionPairs.entries().next().value;
+        $id("rengo-banner").textContent = `本日の連合耐性　★${ sample_name }[${ sample_description }]`
+        this.tBody.classList.add("active-rengo");
+      }
+      else {
+        this.tBody.classList.remove("active-rengo");
+      }
+    }
+    
+    get tBody() { return this.#tBody ?? this.#createTBody(); }
+    
+    #createTBody() {
+      const 
+        tBody = $elm("tbody"),
+        wdayTD = $elm("td");
+      
+      wdayTD.textContent = Const.wdayName[this.#wday];
+      // 最終行までまたぐ
+      wdayTD.rowSpan = 0;
+      
+      tBody.append(...Array.from(this.#nameDescriptionPairs).map(this.#convertNameDescriptionToTR, this));
+      tBody.firstChild.insertBefore(wdayTD, tBody.firstChild.firstChild);
+      
+      this.#tBody = tBody;
+      return tBody;
+    }
+    
+    #convertNameDescriptionToTR([name, description]) {
+      const
+        tr = $elm("tr"),
+        td = $elm("td");
+      td.textContent = (description) ? `★${ name }＜${ description }＞` : `★${ name }`;
+      tr.appendChild(td);
+      return tr;
+    }
+    
+    #tBody;
+    #wday;
+    #nameDescriptionPairs;
+  }
+
+  class StaminaEstimator {
+    /**
+     * @param {SaveData} saveData
+     * @param {{max: number, step: number, regenerationMinutes: number, buttons: number[]}} data
+     */
+    constructor(saveData, data) {
+      this.#saveData = saveData;
+      this.#zeroTime = saveData.getAsNumber("staminaZeroTime");
+      this.#max = data.max;
+      this.#step = data.step;
+      this.#timePerStamina = data.regenerationMinutes * 60 * 1000;
+      this.#buttons = data.buttons;
+      this.#current = $id("current-stamina");
+      this.#timer = $id("stamina-timer");
+      this.#tBody = $id("est-stamina");
+
+
+      $id("max-stamina").textContent = this.#max;
+
+      const control = $id("stamina-control");
+      control.addEventListener("click", (e) => {
+        this.#addZeroTime(e.target.dataset.deltaTime);
+      });
+
+      for (const deltaStamina of data.buttons) {
+        const button = $elm("button");
+        button.type = "button";
+        button.classList.add("filter-button");
+        button.textContent = `${ (deltaStamina > 0) ? "+" : "" }${ deltaStamina }`;
+        button.dataset.deltaTime = - this.#timePerStamina * deltaStamina;
+        control.appendChild(button);
+      }
+
+      this.#calcTable();
+
+      $id("stamina-full").addEventListener("click", (e) => {
+        this.#zeroTime = Date.now() - this.#max * this.#timePerStamina;
+        this.hardReload();
+      });
+      
+      $id("functions").addEventListener("change", ((e) => {
+        switch(e.target.value) {
+          case "stamina-delta-change":
+            const deltaSecondString = prompt("[活力回復タイミングの変更]\n何秒タイミングをずらしますか？(負数可)");
+            if (deltaSecondString === null) {
+              break;
+            }
+            this.#addZeroTime(parseInt(deltaSecondString) * 1000);
+            break;
+          default:
+            return;
+        }
+        e.target.value = "default";
+      }).bind(this));
+    }
+
+    /**
+     * @param {number} [baseTime] 規定値は現在時刻
+     */
+    reload(baseTime = Date.now()) {
+      const timePerStamina = this.#timePerStamina;
+      this.#current.textContent = Math.floor((baseTime - this.#zeroTime) / timePerStamina);
+      const deltaTime = this.#zeroTime + this.#max * timePerStamina - baseTime + 999;
+      this.#timer.textContent = $time3(deltaTime);
+    }
+    
+    hardReload() {
+      this.reload();
+      this.#calcTable();
+      this.#saveData.set("staminaZeroTime", this.#zeroTime);
+    }
+
+    setZeroTime(time) {
+      this.#zeroTime = time;
+      this.hardReload();
+    }
+
+    #addZeroTime(deltaTimeString) {
+      const deltaTime = parseInt(deltaTimeString);
+      if (isNaN(deltaTime)) {
+        return;
+      }
+      this.setZeroTime(this.#zeroTime + deltaTime);
+    }
+    
+    #calcTable() {
+      this.#tBody.innerHTML = "";
+      this.#estTDs = [];
+      const
+        now = Date.now(),
+        step = this.#step,
+        deltaTime = this.#timePerStamina * step,
+        duration = now - this.#zeroTime,
+        stepsCount = Math.floor(duration / deltaTime) + 1;
+      let
+        staminaAtTime = step * stepsCount,
+        time = this.#zeroTime + deltaTime * stepsCount,
+        i = 0;
+      for (let stamina = 0; stamina < this.#max; stamina += step) {
+        this.#addTR(staminaAtTime, time, i++);
+        time += deltaTime;
+        staminaAtTime += step;
+        if (i >= 1000) {
+          alert("[無限ループの発生]\n1000回以上のループです！\nstamina.ini の内容を見直してください。");
+          throw new Error("infinity loop");
+        }
+      }
+    }
+    
+    #addTR(stamina, time, i) {
+      const
+        tr = $elm("tr"),
+        staminaTD = $elm("td"),
+        est = $elm("td");
+      staminaTD.textContent = stamina;
+      est.textContent = $time2(new Date(time));
+      if (stamina === this.#max) {
+        tr.classList.add("max-stamina");
+      }
+      tr.append(staminaTD, est);
+      this.#tBody.append(tr);
+      this.#estTDs[i] = est;
+    }
+
+    #saveData;
+    #max;
+    #step;
+    #timePerStamina;
+    #zeroTime;
+    #buttons;
+    #current;
+    #timer;
+    #tBody;
+    #estTDs;
+  }
+  
+  class IslandBuildingCalculator {
+    /**
+     * @param {SaveData} saveData
+     * @param {string[]} headers
+     * @param {IslandBuildingPlace[]} places
+     */
+    constructor(saveData, headers, places) {
+      this.#saveData = saveData;
+      this.#places = places;
+      this.#summary = new IslandBuildingPlace("合計", Array.from({ length: headers.length }, () => 0));
+      $id("island-body").append(...places.map(this.#getTR), this.#summary.tr);
+      
+      const
+        header = $id("island-header"),
+        inputTR = $id("island-inputs"),
+        calcAndSave = this.calcAndSave.bind(this),
+        initialValues = saveData.getAsNumberArray("islandValues");
+      let index = 0;
+      this.#materialInputs = [];
+      for (const headerName of headers) {
+        header.appendChild(this.#getTH(headerName));
+        const
+          td = $elm("td"),
+          input = $elm("input");
+        input.type = "number";
+        input.value = 0;
+        input.classList.add("cell-input");
+        input.value = initialValues?.[index] ?? 0;
+        input.dataset.index = index++;
+        input.addEventListener("change", calcAndSave);
+        td.appendChild(input);
+        inputTR.appendChild(td);
+        this.#materialInputs.push(input);
+      }
+      this.calcAll();
+    }
+
+    calcAll(e) {
+      const materials = this.#materialInputs.map(this.#getValues);
+      for (const place of this.#places) {
+        place.calcAll(materials);
+      }
+      this.#summary.calcAll(materials, false);
+    }
+
+    calcAndSave(e) {
+      const index = parseInt(e.target.dataset.index);
+      let material = this.#materialInputs[index].valueAsNumber;
+      for (const place of this.#places) {
+        material = place.calc(index, material);
+      }
+      this.#summary.calc(index, material, false);
+      this.#saveInitialValues();
+    }
+
+    #saveInitialValues() {
+      this.#saveData.setAsArray("islandValues", this.#materialInputs.map(this.#getValues));
+    }
+
+    #getTH(text) {
+      const th = $elm("th");
+      th.textContent = text;
+      return th;
+    }
+
+    #getTR(place) {
+      return place.tr;
+    }
+    
+    #getValues(element) {
+      return element.valueAsNumber;
+    }
+
+    #saveData;
+    #materialInputs;
+    #places;
+    #summary;
+  }
+
+  class IslandBuildingPlace {
+    /**
+     * @param {string} name
+     * @param {number[]} materials
+     */
+    constructor(name, materials) {
+      this.#name = name;
+      this.#materials = materials;
+    }
+
+    /**
+     * @param {number[]} materials 実行後、この場所での素材数が加算されます。
+     * @param {boolean} [isHiddenZero] true(規定値)の場合、増加量ゼロの項目を"-"とだけ表示します
+     */
+    calcAll(materials, isHiddenZero = true) {
+      if (materials.length !== this.#materials.length) {
+        const text = `island.iniの${ this.#name }の行の素材の種類数が他と一致していません。`;
+        alert(text);
+        throw new Error(text);
+      }
+      let i = materials.length;
+      while (i-- > 0) {
+        materials[i] += this.#materials[i];
+        this.#materialTds[i].textContent = (isHiddenZero && this.#materials[i] === 0) ? "-" : materials[i];
+      }
+      return materials;
+    }
+    
+    /**
+     * @param {number} index 素材Id
+     * @param {number} material 素材数
+     * @param {boolean} [isHiddenZero] true(規定値)の場合、増加量ゼロの項目を"-"とだけ表示します
+     * @returns {number} 加算後の素材数を返します
+     */
+    calc(index, material, isHiddenZero = true) {
+      material += this.#materials[index];
+      this.#materialTds[index].textContent = (isHiddenZero && this.#materials[index] === 0) ? "-" : material;
+      return material;
+    }
+    
+    get tr() { return this.#tr ?? this.#createTR(); }
+    
+    static fromIni(line) {
+      const datas = line.split("\t");
+      new this(datas.shift(), datas.map(parseInt));
+    }
+    
+    #createTR() {
+      const 
+        tr = $elm("tr"),
+        name = $elm("td");
+      name.textContent = this.#name;
+      this.#materialTds = Array.from({ length: this.#materials.length }, this.#getNewTD);
+      tr.append(name, ...this.#materialTds);
+      return tr;
+    }
+
+    #getNewTD() {
+      return $elm("td");
+    }
+
+    #parseInt(string) {
+      return parseInt(string);
+    }
+
+    #name;
+    #tr;
+    #materials;
+    #materialTds;
+  }
+  
+  class IniParser {
+    /**
+     * @param {SaveData} saveData
+     */
+    constructor(saveData) {
+      this.#saveData = saveData;
+    }
+
+    config(textData) {
+      return IniParser.#parseKeyValuePairs(textData);
+    }
+      
+    savedata(textData) {
+      return IniParser.#parseKeyValuePairs(textData);
+    }
+      
+    /**
+     * @param {string} textData
+     * @returns [Date, Todo[]] [0]は最終更新日時
+     */
+    checklist(textData, overrideTextData) {
+      this.#loadTodoOverride(overrideTextData);
+      const
+        lines = this.#getRecords(textData),
+        lastUpdate = lines.shift().match(/(?<=LAST_UPDATE = )(?<year>\d+)[/](?<month>\d+)[/](?<day>\d+) (?<hours>\d+)[:](?<minutes>\d+)[:](?<seconds>\d+)(?=\n)/).groups,
+        date = new Date(`${ lastUpdate.year }-${ lastUpdate.month }-${ lastUpdate.day }T${ (lastUpdate.hours.length === 1) ? "0" : "" }${ lastUpdate.hours }:${ lastUpdate.minutes }:${ lastUpdate.seconds }`);
+      this.#todoId = 1;
+      return [date, lines.map(this.#parseTodoRec, this)];
+    }
+    
+    /**
+     * @param {string} textData
+     * @returns {WdayRengo[]} 添え字は日曜日=0から始まる曜日を表す
+     */
+    rengo(textData) {
+      const
+        lines = this.#getRecords(textData),
+        rengoes = Array.from({ length: 7 }, (_, i) => new WdayRengo(i));
+      lines.shift();
+      for (const line of lines) {
+        const data = line.match(/^(?<wday>\d)\t+(?<name>.+?)\t+(?<description>.*?)(?:\t|\n|$)/).groups;
+        rengoes[data.wday].add(data);
+      }
+      return rengoes;
+    }
+
+    /**
+     * @param {string} textData
+     * @returns {StaminaEstimator}
+     */
+    stamina(textData) {
+      const data = IniParser.#parseKeyValuePairs(textData);
+      return new StaminaEstimator(this.#saveData, {
+        max: parseInt(data.max),
+        step: parseInt(data.step),
+        regenerationMinutes: parseInt(data.regenerationMinutes),
+        buttons: data.buttons?.split(",")?.map((value) => parseInt(value)) ?? []
+      });
+    }
+
+    island(textData) {
+      const
+        lines = this.#getRecords(textData),
+        data = IniParser.#parseKeyValuePairs(lines.shift()),
+        headers = data.header.split("\t");
+      return new IslandBuildingCalculator(this.#saveData, headers, lines.map(this.#parseIslandRec, this));
+    }
+
+    toTodoIni(todos) {
+      return `LAST_UPDATE = ${ $time(new Date()) }
+CHECK_LIST
+${ todos.map(this.#toTodoRec).join("\n") }
+`;
+    }
+
+    toOverrideTodoIni(todos) {
+      return `OVERRIDE
+${ todos.flatMap(this.#toOverrideTodoRec).join("\n") }
+`;
+    }
+      
+    #loadTodoOverride(textData) {
+      const 
+        lines = this.#getRecords(textData),
+        override = new Map();
+      lines.shift();
+      for (const line of lines) {
+        const data = this.#parseTodoOverrideRec(line);
+        override.set(data.name, data);
+      }
+      this.#override = override;
+    }
+
+    #getRecords(text) {
+      return text
+        .replace(/\r\n/g, "\n")
+        .replace(/\r/g, "\n")
+        .split("\nREC = ");
+    }
+
+    #getLines(text) {
+      return text
+        .replace(/\r\n/g, "\n")
+        .replace(/\r/g, "\n")
+        .split("\n");
+    }
+    
+    #parseTodoRec(line) {
+      const data = line.match(/^(?<cycleType>\d+)\t(?<name>.+?)\t(?<progressMax>\d+)\t(?<progressCurrent>\d+)/).groups;
+      if (this.#override.has(data.name)) {
+        return new TodoOverride(
+          this.#saveData,
+          this.#todoId++,
+          parseInt(data.cycleType),
+          data.name,
+          parseInt(data.progressMax),
+          parseInt(data.progressCurrent),
+          this.#override.get(data.name)
+        );
+      }
+      return new Todo(
+        this.#saveData,
+        this.#todoId++,
+        parseInt(data.cycleType),
+        data.name,
+        parseInt(data.progressMax),
+        parseInt(data.progressCurrent)
+      );
+    }
+    
+    #parseTodoOverrideRec(line) {
+      const
+        [name, durationDays, zeroDay, durationString] = line.split("\t"),
+        zeroDate = zeroDay?.match(/(?<year>\d+)[/](?<month>\d+)[/](?<day>\d+)/)?.groups;
+      return {
+        name,
+        durationDays: parseInt(durationDays),
+        date: new Date(`${ parseInt(zeroDate.year) }-${ parseInt(zeroDate.month) }-${ parseInt(zeroDate.day) }`),
+        durationString
+      };
+    }
+      
+    #toTodoRec(todo) {
+      return todo.toRec();
+    }
+
+    #toOverrideTodoRec(todo) {
+      return todo.toOverrideRec?.() ?? [];
+    }
+
+    #parseIslandRec(line) {
+      const datas = line.split("\t");
+      return new IslandBuildingPlace(datas.shift(), datas.map(parseInt));
+    }
+    
+    static #parseKeyValuePairs(textData) {
+      const data = {};
+      for (const line of textData.split(/\r\n|\n|\r/)) {
+        const lineData = line.match(/^(?<key>[A-Z_]+?) = (?<value>.+)/)?.groups;
+        if (lineData === undefined) {
+          continue;
+        }
+        data[this.getLowerCamelCaseFromUpperSnakeCase(lineData.key)] = /\D/.test(lineData.value) ? lineData.value : parseInt(lineData.value);
+      }
+      return data;
+    }
+
+    static getLowerCamelCaseFromUpperSnakeCase(UPPER_SNAKE_CASE) {
+      return UPPER_SNAKE_CASE.toLowerCase().replace(/_([a-z])/g, (_, char) => char.toUpperCase());
+    }
+
+    static getUpperSnakeCaseFromLowerCamelCase(lowerCamelCase) {
+      return lowerCamelCase.replace(/[A-Z]/g, (char) => "_" + char).toUpperCase();
+    }
+      
+    #override;
+    #lastUpdate;
+    #saveData;
+    #todoId;
+  }
+  
+  class SaveData {
+    constructor() {
+      $id("functions").addEventListener("change", (e) => {
+        if (e.target.value !== "clear-save" || !confirm("[全ての設定を削除]\n削除すると全ての設定項目が初期状態に戻り、進捗も失われます。\n本当に削除しますか？")) {
+          return;
+        }
+        for(const name of Object.values(Const.SaveName)) {
+          localStorage.removeItem(name);
+        }
+        location.reload();
+      });
+      this.#hasSaveRequested = false;
+    }
+
+    set(key, value) {
+      this.#checkKeyAvailable(key);
+      this.#data[key] = value;
+      this.requestToSave();
+    }
+
+    setAsArray(key, value) {
+      this.set(key, value.join("\t"));
+    }
+
+    get(key) {
+      this.#checkKeyAvailable(key);
+      return this.#data[key];
+    }
+
+    getAsNumber(key) {
+      return parseInt(this.get(key));
+    }
+
+    getAsArray(key) {
+      return this.get(key).split("\t");
+    }
+
+    getAsNumberArray(key) {
+      return this.get(key).split("\t").map(parseInt);
+    }
+
+    /**
+     * ゲーム内での日付を返す
+     * 「日付変更」が昼の12時以降なら日付+1
+     * @param {number} [time] デフォルトは現在日時
+     */
+    getIngameDate(time = Date.now()) {
+      const deltaHours = (this.#dateChangeHour < 12) ? - this.#dateChangeHour
+        : 24 - this.#dateChangeHour;
+      return new Date(time + deltaHours * 60 * 60 * 1000);
+    }
+
+    load() {
+      this.#dateChangeHour = parseInt(this.#load("config").dateChangeHour);
+      this.#data = this.#load("savedata");
+      const [date, todos] = this.#iniParser.checklist(
+          this.#getSaveDataOrDefault("checklist"),
+          this.#getSaveDataOrDefault("override")
+      );
+      this.#date = date;
+      this.#todos = todos;
+      this.#rengoes = this.#load("rengo");
+      this.#stamina = this.#load("stamina");
+      this.#island = this.#load("island");
+      return this;
+    }
+    
+    /**
+     * 一連の処理内で実際に保存される回数を1回にまとめるために使います。
+     */
+    requestToSave() {
+      if (this.#hasSaveRequested) {
+        return;
+      }
+      this.#hasSaveRequested = true;
+      setTimeout(this.save, 0, this);
+    }
+
+    saveAll(that = this) {
+      localStorage.setItem(Const.SaveName.checklist, that.#iniParser.toTodoIni(that.#todos));
+      that.saveOverride();
+      this.save();
+      return that;
+    }
+
+    save(that = this) {
+      that.#hasSaveRequested = false;
+      localStorage.setItem(Const.SaveName.savedata, that.#toIni());
+    }
+
+    saveOverride() {
+      localStorage.setItem(Const.SaveName.override, this.#iniParser.toOverrideTodoIni(this.#todos));
+      return this;
+    }
+      
+    get date() { return this.#date; }
+    get todos() { return this.#todos; }
+    get rengoes() { return this.#rengoes; }
+    get stamina() { return this.#stamina; }
+    get island() { return this.#island; }
+    
+    #load(name) {
+      return this.#iniParser[name](this.#getSaveDataOrDefault(name));
+    }
+
+    #checkKeyAvailable(key) {
+      if (this.#data[key] === undefined) {
+        throw new Error(`セーブデータにkey"${ key }"が存在しません`);
+      }
+    }
+
+    #toIni() {
+      const lines = [];
+      for(const [key, value] of Object.entries(this.#data)) {
+        lines.push(`${ IniParser.getUpperSnakeCaseFromLowerCamelCase(key) } = ${ value }`);
+      }
+      return lines.join("\n");
+    }
+      
+    #getSaveDataOrDefault(name) {
+      return localStorage.getItem(Const.SaveName[name]) ?? Const.DefaultData[name];
+    }
+      
+    #createIniParser() {
+      this.#_iniParser = new IniParser(this);
+      return this.#_iniParser;
+    }
+
+    #parseInt(string) {
+      return parseInt(string);
+    }
+      
+    get #iniParser() { return this.#_iniParser ?? this.#createIniParser(); }
+
+    #hasSaveRequested;
+    #dateChangeHour;
+    #data;
+    #date;
+    #todos;
+    #rengoes;
+    #stamina;
+    #island;
+    #_iniParser;
+  }
+
+  class TabManager {
+    /**
+     * @param {string[]} navId
+     * @param {number} [defaultIndex] 最初に表示されているタブ
+     */
+    constructor(navId, defaultIndex = 0) {
+      const nav = $id(navId);
+      nav.addEventListener("click", this.#onClick.bind(this));
+      this.#onClick({ target: nav.children[defaultIndex] });
+    }
+    
+    #onClick(e) {
+      if (e.target === e.currentTarget || this.#activeNav?.id === e.target.id) {
+        return;
+      }
+      
+      const id = e.target.id;
+      
+      this.#activeNav?.classList?.remove?.("selected");
+      this.#activeNav = e.target;
+      this.#activeNav.classList.add("selected");
+      
+      if (this.#activeTab !== undefined) {
+        this.#activeTab.hidden = true;
+      }
+      // "nav-"を削除したid
+      this.#activeTab = $id(id.slice(4));
+      this.#activeTab.hidden = false;
+    }
+    
+    #activeNav;
+    #activeTab;
+  }
+
+  // 時計の表示・更新と日付・時刻変更の確認・処理を行う
+  class Clock {
+    static start(target, staminaEstimator, resetter) {
+      setInterval(this.indicate, 1000, target, staminaEstimator, resetter);
+    }
+    
+    static indicate(target, staminaEstimator, resetter) {
+      target.textContent = $time();
+      staminaEstimator.reload();
+      resetter.resetIfNeeded();
+    }
+  }
+  
+  class DailyResetter {
+    /**
+     * @param {TodoManager} todoManager
+     * @param {SaveData} saveData
+     */
+    constructor(todoManager, saveData) {
+      this.#todoManager = todoManager;
+      this.#saveData = saveData;
+      this.#lastUpdateIngameDate = saveData.getIngameDate(saveData.date.getTime());
+    }
+    
+    resetIfNeeded() {
+      const
+        ingameDate = this.#saveData.getIngameDate(),
+        last = this.#lastUpdateIngameDate;
+      if (last.toDateString() === ingameDate.toDateString()) {
+        return;
+      }
+      const
+        isDefferentMonth = ingameDate.getFullYear() * 12 + ingameDate.getMonth() !== last.getFullYear() * 12 + last.getMonth(),
+        isDefferentWeek = (ingameDate.getDay() + 6) % 7 <= (last.getDay() + 6) % 7 || ingameDate.getTime() >= last.getTime() + 1000 * 60 * 60 * 24 * 7,
+        additionalWillResetTodoNames = this.#todoManager.getWillResetOverrideNames(),
+        confirmString = ((isDefferentMonth && isDefferentWeek) ? "[進捗の初期化]\n月と週が変わりました。\n月課、週課および日課の進捗状況をリセットしますか？"
+          : isDefferentMonth ? "[進捗の初期化]\n月が変わりました。\n月課および日課の進捗状況をリセットしますか？"
+          : isDefferentWeek ? "[進捗の初期化]\n週が変わりました。\n週課および日課の進捗状況をリセットしますか？"
+          : "[進捗の初期化]\n日付が変わりました。\n日課の進捗状況をリセットしますか？")
+          + (additionalWillResetTodoNames.length > 0 ? `\n(加えて、${ additionalWillResetTodoNames.join("、") }の進捗状況もリセットされます)` : "");
+      if (!confirm(confirmString)) {
+        this.#saveData.saveAll();
+        this.#lastUpdateIngameDate = ingameDate;
+        return;
+      }
+      // 月や週が変わったなら月課や週課もリセット
+      this.#todoManager.reset(isDefferentMonth * 4 + isDefferentWeek * 2 + 1);
+      
+      this.#saveData.rengoes[last.getDay()].setActive(false);
+      this.#saveData.rengoes[ingameDate.getDay()].setActive(true);
+      this.#saveData.saveAll();
+      this.#lastUpdateIngameDate = ingameDate;
+    }
+    
+    #todoManager;
+    #saveData;
+    #lastUpdateIngameDate;
+  }
+  
+  class FileLoader {
+    constructor() {
+      const
+        body = document.body,
+        overlay = $id("file-drop-overlay");
+
+      body.addEventListener("dragover", (e) => {
+        if (e.dataTransfer.types[0] !== "Files") {
+          return;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        e.dataTransfer.dropEffect = 'link';
+        overlay.hidden = false;
+      });
+      
+      overlay.addEventListener("dragleave", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        overlay.hidden = true;
+      });
+      
+      overlay.addEventListener("drop", async (e) => {
+        if (e.dataTransfer.types[0] !== "Files") {
+          return;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        overlay.hidden = true;
+
+        console.log(Array.from(e.dataTransfer.files).map(file => file.name).join("\n"))
+        const items = e.dataTransfer.items;
+        try {
+          await this.#load(items);
+        }
+        catch (e) {
+          alert(e.name === "EncodingError" ? "[フォルダ非対応エラー]\nフォルダ読み込み非対応につき、ファイルをドロップしてください。" : "[ドロップ非対応エラー]\nドロップ読み込み非対応ブラウザです。上部メニューから読み込んでみてください。");
+          throw e;
+        }
+        location.reload();
+      });
+
+      $id("ini").addEventListener("change", async (e) => {
+        for (const file of e.target.files) {
+          await this.#loadFile(file);
+        }
+        location.reload();
+      });
+    }
+    
+    async #load(items) {
+      for (const item of items) {
+        await this.#scanEntry(item.getAsEntry?.() ?? item.webkitGetAsEntry());
+      }
+    }
+    
+    async #scanEntry(fileOrDirectoryEntry) {
+      if (fileOrDirectoryEntry.isFile) {
+        const file = await new Promise(fileOrDirectoryEntry.file.bind(fileOrDirectoryEntry));
+        this.#loadFile(file);
+        return;
+      }
+      
+      // isDirectory
+      const 
+        reader = fileOrDirectoryEntry.createReader(),
+        entries = await new Promise(reader.readEntries.bind(reader));
+      for (const entry of entries) {
+        await this.#scanEntry(entry);
+      }
+    }
+    
+    async #loadFile(file) {
+      console.log(file);
+      console.log(await file.text());
+      switch(file.name) {
+        case "config.ini":
+          localStorage.setItem(Const.SaveName.config, await file.text());
+          break;
+        case "savedata.ini":
+          localStorage.setItem(Const.SaveName.savedata, await file.text());
+          break;
+        case "checklist.ini":
+          localStorage.setItem(Const.SaveName.checklist, await file.text());
+          break;
+        case "override.ini":
+          localStorage.setItem(Const.SaveName.override, await file.text());
+          break;
+        case "rengo.ini":
+          localStorage.setItem(Const.SaveName.rengo, await file.text());
+          break;
+        case "stamina.ini":
+          localStorage.setItem(Const.SaveName.stamina, await file.text());
+          break;
+        case "island.ini":
+          localStorage.setItem(Const.SaveName.stamina, await file.text());
+          break;
+      }
+    }
+  }
+
+  class Memo {
+    constructor(savaSecondsFromLastInput = 1) {
+      this.#element = $id("memo");
+      this.#element.value = localStorage.getItem("tof_memo") ?? "";
+      this.#element.addEventListener("input", (e) => {
+        if (this.#timeoutId !== undefined) {
+          clearTimeout(this.#timeoutId);
+        }
+        this.#timeoutId = setTimeout(this.#save.bind(this), savaSecondsFromLastInput * 1000);
+      });
+    }
+    
+    #save() {
+      this.#timeoutId = undefined;
+      localStorage.setItem("tof_memo", this.#element.value);
+    }
+
+    #element;
+    #timeoutId;
+    #lastInput;
+  }
+  
+  (function initialize() {
+    $id("help").addEventListener("input", (e) => {
+      switch (e.target.value) {
+        case "version-info":
+          alert(`[バージョン情報]
+幻塔 Daily Routine Check List for Web
+ver. 0.1
+programmed by ラスミティ @2022/11/03
+
+Original:
+幻塔 Daily Routine Check List
+ver. 0.2β
+programmed by 029chan @2022/11/01
+`
+          );
+      }
+      e.target.value = "default";
+    });
+    
+    new TabManager("main-nav");
+    new FileLoader();
+    
+    const data = new SaveData();
+    data.load();
+    
+    const
+      todoManager = new TodoManager(data),
+      dailyResetter = new DailyResetter(todoManager, data);
+    
+    $id("rengo-table").append(...data.rengoes.map((wdayRengo) => wdayRengo.tBody));
+    data.rengoes[data.getIngameDate().getDay()].setActive(true);
+    
+    Clock.start($id("clock"), data.stamina, dailyResetter);
+    
+    new Memo();
+
+    const link = $id("dummy-link");
+    $id("ini-save").addEventListener("change", (e) => {
+      const
+        saveName = e.target.value,
+        value = localStorage.getItem(Const.SaveName[saveName]) ?? Const.DefaultData[saveName],
+        type = { type: "text/plain" },
+        blob = new Blob([value], type);
+      link.href = URL.createObjectURL(blob);
+      link.download = `${ saveName }.ini`;
+      link.click();
+      e.target.value = "default";
+    });
+ 
+    /*
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+    new Notification("humu");
+    */
+  })();
+});
+  </script>
+</body>
+</html>
