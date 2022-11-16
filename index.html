@@ -22,17 +22,6 @@
       <option value="version-info">バージョン情報</option>
     </select>
     <label class="menu-dropdown">ini読み込み<input id="ini" type="file" class="transparent-input" multiple webkitdirectory></label>
-    <select id="ini-save" class="menu-dropdown">
-      <option value="default">ini保存</option>
-      <option value="config">config.ini</option>
-      <option value="savedata">savedata.ini</option>
-      <option value="checklist">checklist.ini</option>
-      <option value="override">override.ini</option>
-      <option value="rengo">rengo.ini</option>
-      <option value="stamina">stamina.ini</option>
-      <option value="island">island.ini</option>
-    </select>
-    <a id="dummy-link" class="dummy-link" hidden>保存</a>
   </header>
   <main>
     <article id="checklist">
@@ -110,24 +99,37 @@
         </tbody>
       </table>
     </article>
+    <article id="settings" hidden>
+      <div class="control">
+        上級者向け：
+        <select id="settings-ini-name" class="filter-select">
+          <option value="config">config.ini</option>
+          <option value="savedata">savedata.ini</option>
+          <option value="checklist">checklist.ini</option>
+          <option value="override">override.ini</option>
+          <option value="rengo">rengo.ini</option>
+          <option value="stamina">stamina.ini</option>
+          <option value="island">island.ini</option>
+        </select>
+        <button id="settings-ini-save" type="button" class="filter-button">保存</button>
+        <label class="filter-button">ファイル読込<input id="settings-ini-load" type="file" class="transparent-input"></label>
+        <button id="settings-ini-export" type="button" class="filter-button">ファイル出力</button>
+        <button id="settings-ini-clear" type="button" class="filter-button">初期化</button>
+        <a id="dummy-link" class="dummy-link" hidden>保存</a>
+      </div>
+      <textarea id="settings-ini-editor" class="ini-editor"></textarea>
+    </article>
     <article id="about" hidden>
       <div class="control">
         <div>
-          PC(Chrome/Edge系)の場合、手順は少し複雑ですが、ダウンロードなどなしで設定を変更できます。
-          <ol>
-            <li>[F12]を押し、開発者ツールを開く</li>
-            <li>上の"要素"タブの並びから[アプリケーション]タブを選択</li>
-            <li>左の"ストレージ"内の[ローカルストレージ]を展開し、このサイトのURLと同じものを[クリック]して開く</li>
-            <li>変更したいものを[右クリック]&gt;[「(名前)」を編集]で編集、終わったら[Enter]で確定</li>
-            <li>このページを再読み込みする</li>
-          </ol>
-          <div>
-            対応環境などについて
-            PC/Chrome以外での動作は未確認です。
-            自分のスマホだとUIが豆粒になるので、横画面にして拡大率も調整する必要があるかも。
-            また、いくつかの機能が動かない可能性もあります。
-            「最前面表示」は技術的に不可能そうなので未実装です。それに伴い、「みにまむ」も未実装です。
-          </div>
+          対応環境などについて
+          <ul>
+            <li>PC/Chrome以外での動作は未確認です。いくつかの機能が動かない可能性もあります。</li>
+            <li>自分のスマホだとUIが豆粒になるのを確認しています。横画面もありかも。</li>
+            <li>「最前面表示」は技術的に不可能そうなので未実装です。それに伴い、「みにまむ」も未実装です。</li>
+            <li>上部メニューの「ini読み込み」からは対応していればフォルダごと読み込めるかもしれません。</li>
+            <li>PCの場合はドラッグ&ドロップでも読み込めるかもしれません。</li>
+          </ul>
         </div>
       </div>
     </article>
@@ -138,6 +140,7 @@
       <div id="nav-stamina" class="tab">活力</div>
       <div id="nav-island-building" class="tab">人工島建設</div>
       <div id="nav-about" class="tab">使い方など</div>
+      <div id="nav-settings" class="tab">設定</div>
     </nav>
   </main>
   <textarea id="memo" class="memo" placeholder="メモ欄です、バグなどで消失の可能性があるので注意！"></textarea>
@@ -244,8 +247,8 @@ REC = ワームホール	5	2022/08/11	５日
 `,
         config: `DATE_CHANGE_HOUR = 5
 WINDOW_TOPMOST = True
-WINDOW_POSITION = 0	0	160	28
-MINI_WINDOW_POSITION = -7	911
+WINDOW_POSITION = 0	0	0	0
+MINI_WINDOW_POSITION = 0	0
 `,
         get savedata() {
           return `STAMINA_ZERO_TIME = ${ Date.now() }
@@ -1394,7 +1397,11 @@ ${ todos.flatMap(this.#toOverrideTodoRec).join("\n") }
   }
   
   class FileLoader {
-    constructor() {
+    /*
+     * @param {Set<string>} fileNames
+     */
+    constructor(fileNames) {
+      this.#fileNames = fileNames;
       const
         body = document.body,
         overlay = $id("file-drop-overlay");
@@ -1457,7 +1464,7 @@ ${ todos.flatMap(this.#toOverrideTodoRec).join("\n") }
       }
       
       // isDirectory
-      const 
+      const
         reader = fileOrDirectoryEntry.createReader(),
         entries = await new Promise(reader.readEntries.bind(reader));
       for (const entry of entries) {
@@ -1466,32 +1473,95 @@ ${ todos.flatMap(this.#toOverrideTodoRec).join("\n") }
     }
     
     async #loadFile(file) {
-      console.log(file);
-      console.log(await file.text());
-      switch(file.name) {
-        case "config.ini":
-          localStorage.setItem(Const.SaveName.config, await file.text());
-          break;
-        case "savedata.ini":
-          localStorage.setItem(Const.SaveName.savedata, await file.text());
-          break;
-        case "checklist.ini":
-          localStorage.setItem(Const.SaveName.checklist, await file.text());
-          break;
-        case "override.ini":
-          localStorage.setItem(Const.SaveName.override, await file.text());
-          break;
-        case "rengo.ini":
-          localStorage.setItem(Const.SaveName.rengo, await file.text());
-          break;
-        case "stamina.ini":
-          localStorage.setItem(Const.SaveName.stamina, await file.text());
-          break;
-        case "island.ini":
-          localStorage.setItem(Const.SaveName.stamina, await file.text());
-          break;
+      const filename = file.name.slice(0, file.name.indexOf("."));
+      if (!this.#fileNames.has(filename)) {
+        return;
       }
+      localStorage.setItem(Const.SaveName[filename], await file.text());
     }
+
+    #fileNames;
+  }
+
+  class Editor {
+    constructor(fileSelector, textarea, saveButton, loadInput, clearButton, exportButton) {
+      this.#fileSelector = fileSelector;
+      this.#textarea = textarea;
+      this.load();
+
+      fileSelector.addEventListener("change", (e) => {
+        this.load();
+      });
+
+      saveButton.addEventListener("click", this.#saveAndConfirmToReload.bind(this));
+
+      loadInput.addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        if (file === undefined) {
+          return;
+        }
+        e.target.value = "";
+        if (file.size > 100_000) {
+          alert("ファイルが大きすぎます！");
+          return;
+        }
+        this.#textarea.value = await file.text();
+        if (!confirm(`[保存の確認]\n内容を読み込みました。\nそのまま保存しますか？`)) {
+          return;
+        }
+        this.#saveAndConfirmToReload();
+      });
+
+      clearButton.addEventListener("click", (e) => {
+        const name = fileSelector.value;
+        if (!confirm(`[${ name }.iniの初期化]\n本当に初期化しますか？`)) {
+          return;
+        }
+        this.#textarea.value = Const.DefaultData[name];
+        localStorage.removeItem(Const.SaveName[name]);
+      });
+        
+      const link = $id("dummy-link");
+      exportButton.addEventListener("click", (e) => {
+        const
+          value = textarea.value,
+          type = { type: "text/plain" },
+          blob = new Blob([value], type);
+        link.href = URL.createObjectURL(blob);
+        link.download = `${ fileSelector.value }.ini`;
+        link.click();
+      });
+
+      // tabキーでフォーカスをずらさない
+      textarea.addEventListener("keydown", (e) => {
+	    if (e.key !== "Tab" || e.shiftKey || e.ctrlKey || e.altKey) {
+          return;
+        }
+	    e.preventDefault();
+        // Deprecatedだができれば Ctrl + Z が効かなくなるのを回避したいため
+        if (document.execCommand) {
+          document.execCommand("insertText", false, "\t");
+          return;
+        }
+        textarea.setRangeText("\t", textarea.selectionStart, textarea.selectionEnd, "end");
+      });
+    }
+
+    load() {
+      const name = this.#fileSelector.value;
+      this.#textarea.value = localStorage.getItem(Const.SaveName[name]) ?? Const.DefaultData[name];
+    }
+
+    #saveAndConfirmToReload() {
+      localStorage.setItem(Const.SaveName[this.#fileSelector.value], this.#textarea.value);
+      if (!confirm(`[ページ更新確認]\n保存しました。\n反映のためにページを再読み込みしますか？`)) {
+        return;
+      }
+      location.reload();
+    }
+      
+    #fileSelector;
+    #textarea;
   }
 
   class Memo {
@@ -1522,8 +1592,8 @@ ${ todos.flatMap(this.#toOverrideTodoRec).join("\n") }
         case "version-info":
           alert(`[バージョン情報]
 幻塔 Daily Routine Check List for Web
-ver. 0.1
-programmed by ラスミティ @2022/11/16
+ver. 0.2
+programmed by ラスミティ @2022/11/17
 
 Original:
 幻塔 Daily Routine Check List
@@ -1536,8 +1606,9 @@ programmed by 029chan @2022/11/01
     });
     
     new TabManager("main-nav");
-    new FileLoader();
-    
+    new FileLoader(new Set(["config", "savedata", "checklist", "override", "rengo", "stamina", "island"]));
+    new Editor($id("settings-ini-name"), $id("settings-ini-editor"), $id("settings-ini-save"), $id("settings-ini-load"), $id("settings-ini-clear"), $id("settings-ini-export"));
+
     const data = new SaveData();
     data.load();
     
@@ -1551,19 +1622,6 @@ programmed by 029chan @2022/11/01
     Clock.start($id("clock"), data.stamina, dailyResetter);
     
     new Memo();
-
-    const link = $id("dummy-link");
-    $id("ini-save").addEventListener("change", (e) => {
-      const
-        saveName = e.target.value,
-        value = localStorage.getItem(Const.SaveName[saveName]) ?? Const.DefaultData[saveName],
-        type = { type: "text/plain" },
-        blob = new Blob([value], type);
-      link.href = URL.createObjectURL(blob);
-      link.download = `${ saveName }.ini`;
-      link.click();
-      e.target.value = "default";
-    });
  
     /*
     if (Notification.permission !== "granted") {
