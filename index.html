@@ -129,16 +129,20 @@
       </ul>
       iniについて
       <ul>
-        <li>override.iniは「名前 周期 次回リセット年月日 表示上の周期名」となっています。</li>
+        <li>checklist.ini の LAST_UPDATE はDL版だとwindows側の設定で保存形式が変わるようです。</li>
         <ul>
-          <li>ただし周期が0以下の場合、checklist.iniの周期を-(周期)として上書きするだけになり、以降の2パラメータは読み込まれません。現在機能するのは-8=月課のみ。</li>
+          <li>もし読み込みに失敗しているようなら、[設定]タブから「2022/08/11 9:00:00」のような形式に編集して再読み込みしてみてください。</li>
         </ul>
-        <li>guide.iniはpukiwikiライクな記法に若干対応してます。</li>
+        <li>override.ini は「名前 周期 次回リセット年月日 表示上の周期名」となっています。</li>
         <ul>
-          <li>&はbr,color(文字色,背景色){テキスト},img(画像url(discordからのみ)),link(url){テキスト}。</li>
+          <li>ただし周期が0以下の場合、checklist.ini の周期を-(周期)として上書きするだけになり、以降の2パラメータは読み込まれません。現在機能するのは-8=月課のみ。</li>
+        </ul>
+        <li>guide.ini はpukiwikiライクな記法に若干対応してます。</li>
+        <ul>
+          <li>&amp;はbr,color(文字色,背景色){テキスト},img(画像url(discordからのみ)),link(url){テキスト}。</li>
           <li>テーブルの行タイプとしてはh行(ヘッダ行),c行(列の書式一括指定),g行(全セルに適用する,独自仕様)。
           <li>セルに指定できるのはHEADER:(チルダ(~)でも代用可),WIDTH():,HEIGHT():,COLOR():,BGCOLOR():,LEFT:,CENTER:,RIGHT:,TOP:,MIDDLE:,BOTTOM:。</li>
-          <li>COLSPAN():,ROWSPAN():は一応使えますがc行による指定が崩れるので注意。</li>
+          <li>COLSPAN():,ROWSPAN():は一応使えますが、結合先セルを記述しない点とc行による指定が崩れる点に注意。</li>
         </ul>
       </ul>
     </article>
@@ -278,8 +282,8 @@ REC = 2	月課サンプル	3	0	False
 ||BGCOLOR(#e06666):0|BGCOLOR(#e06666):0|||||||||||||||||||
 
 装備必要経験値
-|||合計|星|||||h
-||||1|2|3|4|5|h
+|ROWSPAN(2):|ROWSPAN(2):|ROWSPAN(2):合計|星|||||h
+|1|2|3|4|5|h
 |HEADER:|HEADER:|RIGHT:|RIGHT:|RIGHT:|RIGHT:|RIGHT:|RIGHT:|c
 |装備|白|0||||||
 ||緑|180|80|100||||
@@ -300,6 +304,16 @@ REC = 2	月課サンプル	3	0	False
 ||(普通)|5|||
 
 ロジック訓練
+63マス
+|┏|━|━|━|┓|BGCOLOR(black):|┏|━|┓|
+|┗|┓|BGCOLOR(black):|ゴ|┃|BGCOLOR(black):|┗|ス|┃|
+|┏|┛|BGCOLOR(black):|┗|┛|BGCOLOR(black):|┏|┓|┃|
+|┃|┏|━|━|━|┓|┃|┃|┃|
+|┃|┗|━|━|┓|┃|┃|┃|┃|
+|┗|┓|BGCOLOR(black):|┏|┛|┗|┛|鍵|┃|
+|┏|┛|BGCOLOR(black):|┗|┓|BGCOLOR(black):|┏|┛|┃|
+|┗|━|扉|━|┛|BGCOLOR(black):|┗|━|┛|
+
 77マス
 |┏|━|━|━|━|━|━|━|┓|
 |┃|┏|━|━|━|━|━|┓|┃|
@@ -311,16 +325,6 @@ REC = 2	月課サンプル	3	0	False
 |┃|BGCOLOR(black):|鍵|┛|┗|┛|┗|ゴ|┃|
 |┗|━|━|━|━|━|━|━|┛|
 
-63マス
-|┏|━|━|━|┓|BGCOLOR(black):|┏|━|┓|
-|┗|┓|BGCOLOR(black):|ゴ|┃|BGCOLOR(black):|┗|ス|┃|
-|┏|┛|BGCOLOR(black):|┗|┛|BGCOLOR(black):|┏|┓|┃|
-|┃|┏|━|━|━|┓|┃|┃|┃|
-|┃|┗|━|━|┓|┃|┃|┃|┃|
-|┗|┓|BGCOLOR(black):|┏|┛|┗|┛|鍵|┃|
-|┏|┛|BGCOLOR(black):|┗|┓|BGCOLOR(black):|┏|┛|┃|
-|┗|━|扉|━|┛|BGCOLOR(black):|┗|━|┛|
-
 31マス
 |BGCOLOR(black):|┏|┓|┏|━|┓|
 |┏|鍵|┗|┛|ス|┛|
@@ -330,8 +334,8 @@ REC = 2	月課サンプル	3	0	False
 |┗|━|━|━|┛|BGCOLOR(black):|
 
 アルケー性能
-||COLSPAN(2):バック効果|COLSPAN(2):チャージ(秒)|COLSPAN(2):持続(秒)|COLSPAN(2):チャージ(回)|COLSPAN(3):与ダメ系バフ/デバフ|単発|総合平均|h
-||与/被|属性|初期|最短|初期|最長|初期|最大|種類|(%)|持続|(%秒)|(%/秒)|h
+|ROWSPAN(2):|COLSPAN(2):バック効果|COLSPAN(2):チャージ(秒)|COLSPAN(2):持続(秒)|COLSPAN(2):チャージ(回)|COLSPAN(3):与ダメ系バフ/デバフ|単発|総合平均|h
+|与/被|属性|初期|最短|初期|最長|初期|最大|種類|(%)|持続|(%秒)|(%/秒)|h
 |HEADER:|CENTER:|CENTER:|RIGHT:|RIGHT:|RIGHT:|RIGHT:|CENTER:|CENTER:|CENTER:|RIGHT:|CENTER:|RIGHT:|RIGHT:|c
 |ジャイアントアーム|被|物理|300|200|20|30|-|-|-|-|-|||
 |オムニアムの盾|被|氷|90|60|10|20|-|-|与|25|通過ごとに7秒|525.00|8.75|
@@ -424,7 +428,7 @@ REC = 野生動物	0	0	0	0	5418	0	0
         stamina: `MAX = 180
 STEP = 30
 REGENERATION_MINUTES = 8
-BUTTONS = -90,-30,30
+BUTTONS = -90	-30	30
 `,
         override: `OVERRIDE
 REC = ワームホール	5	2022/08/11	５日
@@ -1081,7 +1085,6 @@ DISP_NXD_COL = False
   }
 
   class MarkDownParser {
-    // colspan, rowspan 未実装
     static parseTable(target, text) {
       const fragments = [];
       let
@@ -1165,8 +1168,12 @@ DISP_NXD_COL = False
 
     static #getCell(text, cellStyle, columnStyle, tableStyle, isHeader) {
       const element = $elm(columnStyle?.isHeader || isHeader ? "th" : "td");
-      element.colSpan = cellStyle.colSpan;
-      element.rowSpan = cellStyle.rowSpan;
+      if (cellStyle.colSpan !== undefined) {
+        element.colSpan = cellStyle.colSpan;
+      }
+      if (cellStyle.rowSpan !== undefined) {
+        element.rowSpan = cellStyle.rowSpan;
+      }
       element.append(...this.#convertTags(text));
       for (const [key, value] of Object.entries(cellStyle)) {
         element.style[key] = value ?? columnStyle?.[key] ?? tableStyle[key];
@@ -1491,7 +1498,7 @@ DISP_NXD_COL = False
       this.#loadTodoOverride(overrideTextData);
       const
         lines = this.#getRecords(textData),
-        lastUpdate = lines.shift().match(/(?<=LAST_UPDATE = )(?<year>\d+)[/](?<month>\d+)[/](?<day>\d+) (?<hours>\d+)[:](?<minutes>\d+)[:](?<seconds>\d+)(?=\n)/).groups,
+        lastUpdate = lines.shift().match(/(?<=LAST_UPDATE = )(?<year>\d+)[/](?<month>\d+)[/](?<day>\d+).+?(?<hours>\d+)[:](?<minutes>\d+)[:](?<seconds>\d+)(?=\n)/).groups,
         date = new Date(`${ lastUpdate.year }-${ lastUpdate.month }-${ lastUpdate.day }T${ (lastUpdate.hours.length === 1) ? "0" : "" }${ lastUpdate.hours }:${ lastUpdate.minutes }:${ lastUpdate.seconds }`);
       this.#todoId = 1;
       return [date, lines.map(this.#parseTodoRec, this)];
@@ -1523,7 +1530,7 @@ DISP_NXD_COL = False
         max: parseInt(data.max),
         step: parseInt(data.step),
         regenerationMinutes: parseInt(data.regenerationMinutes),
-        buttons: data.buttons?.split(",")?.map((value) => parseInt(value)) ?? []
+        buttons: data.buttons?.split("\t")?.map((value) => parseInt(value)) ?? []
       });
     }
 
@@ -2107,15 +2114,16 @@ ${ todos.flatMap(this.#toOverrideTodoRec).join("\n") }
         alert(`[バージョン情報]
 幻塔 Daily Routine Check List for Web
 ver. 0.2
-programmed by ラスミティ @2022/11/17
+programmed by ラスミティ @2022/12/17
 
 Original:
 幻塔 Daily Routine Check List
-ver. 0.2.1β
+ver. 0.3.1β
 programmed by 029chan @2022/11/01
 `
         );
-      }]
+      }],
+      ["hr"]
     ]);
 
     new TabManager("main-nav");
