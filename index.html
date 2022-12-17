@@ -7,29 +7,23 @@
   <link href="style.css" rel="stylesheet">
 </head>
 <body>
-  <header class="menu">
-    <select id="functions" class="menu-dropdown">
-      <option value="default">機能</option>
+  <header id="header" tabindex="-1" class="menu">
+    <select id="functions" class="menu-dropdown-select" hidden>
+      <option value="default" id="option_test">機能</option>
       <option value="monthly-reset">月間課題の進捗を初期化</option>
       <option value="weekly-reset">週間課題の進捗を初期化</option>
       <option value="daily-reset">日間課題の進捗を初期化</option>
+      <option value="unscheduled-reset">個別課題の進捗を初期化</option>
       <option>----------------</option>
       <option value="stamina-delta-change">活力回復のタイミングを調整</option>
       <option value="clear-save" class="caution">初期化</option>
     </select>
-    <select id="help" class="menu-dropdown">
-      <option value="default">ヘルプ</option>
-      <option value="version-info">バージョン情報</option>
-    </select>
-    <label class="menu-dropdown">ini読み込み<input id="ini" type="file" class="transparent-input" multiple webkitdirectory></label>
+    <label class="menu-dropdown-select">ini読み込み<input id="ini" type="file" class="transparent-input" multiple webkitdirectory></label>
   </header>
   <main>
     <article id="checklist">
       <div class="control">
         絞り込み条件：
-        <label class="label"><input id="monthly-filter" type="checkbox" class="checkbox">月課</label>
-        <label class="label"><input id="weekly-filter" type="checkbox" class="checkbox">週課</label>
-        <label class="label"><input id="daily-filter" type="checkbox" class="checkbox">日課</label>
         <select id="has-done-filter" class="filter-select">
           <option value="0">全て</option>
           <option value="1">未達成のもの</option>
@@ -37,10 +31,11 @@
         </select>
         <button type="button" id="apply-filter" class="filter-button">一覧を更新</button>
       </div>
-      <table class="progress-table">
+      <table id="progress-table" class="progress-table">
         <thead>
-          <tr>
+          <tr class="visible">
             <th class="th-no">No.</th>
+            <th class="th-visible">有効</th>
             <th class="th-kind">種別</th>
             <th class="th-name">内容</th>
             <th class="th-progress">進捗</th>
@@ -63,6 +58,8 @@
           <th>詳細</th>
         </thead>
       </table>
+    </article>
+    <article id="guide" class="content" hidden>
     </article>
     <article id="stamina" hidden>
       <div class="control">
@@ -107,6 +104,7 @@
           <option value="savedata">savedata.ini</option>
           <option value="checklist">checklist.ini</option>
           <option value="override">override.ini</option>
+          <option value="guide">guide.ini</option>
           <option value="rengo">rengo.ini</option>
           <option value="stamina">stamina.ini</option>
           <option value="island">island.ini</option>
@@ -119,24 +117,36 @@
       </div>
       <textarea id="settings-ini-editor" class="ini-editor"></textarea>
     </article>
-    <article id="about" hidden>
-      <div class="control">
-        <div>
-          対応環境などについて
-          <ul>
-            <li>PC/Chrome以外での動作は未確認です。いくつかの機能が動かない可能性もあります。</li>
-            <li>自分のスマホだとUIが豆粒になるのを確認しています。横画面もありかも。</li>
-            <li>「最前面表示」は技術的に不可能そうなので未実装です。それに伴い、「みにまむ」も未実装です。</li>
-            <li>上部メニューの「ini読み込み」からは対応していればフォルダごと読み込めるかもしれません。</li>
-            <li>PCの場合はドラッグ&ドロップでも読み込めるかもしれません。</li>
-          </ul>
-        </div>
-      </div>
+    <article id="about" class="content" hidden>
+      対応環境などについて
+      <ul>
+        <li>PC/Chrome以外での動作は未確認です。いくつかの機能が動かない可能性もあります。</li>
+        <li>自分のスマホだとUIが豆粒になるのを確認しています。横画面もありかも。</li>
+        <li>「最前面表示」は技術的に不可能そうなので未実装です。それに伴い、「みにまむ」も未実装です。</li>
+        <li>「ウィンドウ位置・サイズの記憶」も同様です。</li>
+        <li>上部メニューの「ini読み込み」からは対応していればフォルダごと読み込めるかもしれません。</li>
+        <li>PCの場合はドラッグ&ドロップでも読み込めるかもしれません。</li>
+      </ul>
+      iniについて
+      <ul>
+        <li>override.iniは「名前 周期 次回リセット年月日 表示上の周期名」となっています。</li>
+        <ul>
+          <li>ただし周期が0以下の場合、checklist.iniの周期を-(周期)として上書きするだけになり、以降の2パラメータは読み込まれません。現在機能するのは-8=月課のみ。</li>
+        </ul>
+        <li>guide.iniはpukiwikiライクな記法に若干対応してます。</li>
+        <ul>
+          <li>&はbr,color(文字色,背景色){テキスト},img(画像url(discordからのみ)),link(url){テキスト}。</li>
+          <li>テーブルの行タイプとしてはh行(ヘッダ行),c行(列の書式一括指定),g行(全セルに適用する,独自仕様)。
+          <li>セルに指定できるのはHEADER:(チルダ(~)でも代用可),WIDTH():,HEIGHT():,COLOR():,BGCOLOR():,LEFT:,CENTER:,RIGHT:,TOP:,MIDDLE:,BOTTOM:。</li>
+          <li>COLSPAN():,ROWSPAN():は一応使えますがc行による指定が崩れるので注意。</li>
+        </ul>
+      </ul>
     </article>
     <nav id="main-nav" class="sidebar">
       <!-- <button>だと文字方向弄れなさそうなので<div> -->
       <div id="nav-checklist" class="tab selected">日課･週課</div>
       <div id="nav-rengo" class="tab">連合耐性</div>
+      <div id="nav-guide" class="tab">攻略メモ</div>
       <div id="nav-stamina" class="tab">活力</div>
       <div id="nav-island-building" class="tab">人工島建設</div>
       <div id="nav-about" class="tab">使い方など</div>
@@ -159,7 +169,8 @@ window.addEventListener("load", () => {
       CycleTypeName: {
         0: "日課",
         1: "週課",
-        2: "月課"
+        2: "個別",
+        8: "月課"
       },
       wdayName: ["日", "月", "火", "水", "木", "金", "土"],
       SaveName: {
@@ -167,32 +178,196 @@ window.addEventListener("load", () => {
         savedata: "tof_savedata",
         checklist: "tof_checklist",
         override: "tof_override",
+        guide: "tof_guide",
         rengo: "tof_rengo",
         stamina: "tof_stamina",
         island: "tof_island",
       },
       DefaultData: {
         checklist: `LAST_UPDATE = 1970/01/01 00:00:00
+
 CHECK_LIST
-REC = 0	闇市プレゼント	1	0
-REC = 0	UFOキャッチャー	1	0
-REC = 0	訓練	2	0
-REC = 0	境界戦闘NormalAuto	4	0
-REC = 0	星界（消化または確認）	1	0
-REC = 0	ミラポリス(オアシスクラブ)プレーンクルーズ	1	0
-REC = 0	ミラポリス(オアシスクラブ)レーザー回廊	1	0
-REC = 0	ミラポリス(鏡花堂)ターゲットヒット	1	0
-REC = 0	ミラポリス(鏡花堂)ビートリズム	1	0
-REC = 0	ミラポリス(資産管理センター)元素マジック箱	1	0
-REC = 0	ミラポリス(資産管理センター)箱運び	1	0
-REC = 0	灰域	6	0
-REC = 1	クレアおばさん	7	0
-REC = 1	討伐作戦	3	0
-REC = 1	人口島ボス	4	0
-REC = 1	在りし日の幻	3	0
-REC = 1	今週の活躍値	1	0
-REC = 1	ワームホール	8	0
-REC = 2	(月更新サンプル)	1	0
+
+#以下にチェックリストのレコードを記述します。
+#書式
+#
+#     REC = param1 param2 param3 param4 param5
+#
+#         param1:日課なら0、週課なら1、個別なら2を指定
+#         param2:内容
+#         param3:達成数の最大値
+#         param4:現在の達成数
+#         param5:このレコードが有効かどうか(true または false)
+#
+#     ※各paramはタブで区切ります。
+
+REC = 2	連合天井カウント	100	0	True
+REC = 0	闇市プレゼント	1	0	True
+REC = 0	UFOキャッチャー	1	0	True
+REC = 0	訓練	2	0	True
+REC = 0	デイリー懸賞	1	0	True
+REC = 0	境界戦闘NormalAuto	4	0	True
+REC = 0	星界（消化または確認）	1	0	True
+REC = 0	ミラポリス(オアシスクラブ)レーザー回廊	1	0	True
+REC = 0	ミラポリス(オアシスクラブ)プレーンクルーズ	1	0	True
+REC = 0	ミラポリス(資産管理センター)元素マジック箱	1	0	True
+REC = 0	ミラポリス(資産管理センター)箱運び	1	0	True
+REC = 0	ミラポリス(鏡花堂)ビートリズム	1	0	True
+REC = 0	ミラポリス(鏡花堂)ターゲットヒット	1	0	True
+REC = 0	灰域	6	0	True
+REC = 0	イベント（レース）	1	0	False
+REC = 0	イベント（戦闘）	1	0	False
+REC = 0	イベント（その他）	1	0	False
+REC = 1	クレアおばさん	7	0	True
+REC = 1	討伐作戦	3	0	True
+REC = 1	人口島ボス	4	0	True
+REC = 1	在りし日の幻	3	0	True
+REC = 1	今週の活躍値	1	0	True
+REC = 2	ワームホール	1	0	False
+REC = 2	月課サンプル	3	0	False
+`,
+        guide: `クレおば迷路MAP
+凡例：
+　　数字は旗の場所（薄いのは床下）。黄色は崩れる床。青は消える床。昇は昇降台
+&img(https://cdn.discordapp.com/attachments/287559340406079489/1049100558272843796/image.png,100);
+(張っていい画像か分からなかったので各自Discordから探してセルフサービスで貼って下さい)
+
+以下は個人でまとめた情報のため、計算などが&color(yellow,black){間違っている可能性もあります};。ご注意。
+ボリション必要経験値
+|レア度|レベル|累計|次の10レベル分|次レベルまで|h
+|HEADER:BGCOLOR(#e8e8e8):|HEADER:RIGHT:BGCOLOR(#e8e8e8):|RIGHT:WIDTH(100):|RIGHT:WIDTH(100):|RIGHT:WIDTH(100):|c
+|R|0|0|300|30|
+||10|300|600|60|
+||20|900|1,000|100|
+||30|1,900|1,800|180|
+||40|3,700|2,800|280|
+||50|6,500||(最大レベル)|
+|BGCOLOR(transparent):|BGCOLOR(transparent):||||
+|SR|0|0|500|50|
+||10|500|1,100|110|
+||20|1,600|1,900|190|
+||30|3,500|3,300|330|
+||40|6,800|5,000|500|
+||50|11,800|6,100|610|
+||60|17,900|6,900|690|
+||70|24,800||(最大レベル)|
+|BGCOLOR(transparent):|BGCOLOR(transparent):||||
+|SSR|~0|0|1,000|100|
+||10|1,000|2,000|200|
+||20|3,000|3,400|340|
+||30|6,400|6,100|610|
+||40|12,500|9,200|920|
+||50|21,700|11,400|1,140|
+||60|33,100|12,800|1,280|
+||70|45,900|14,300|1,430|
+||80|60,200|||
+
+クレおば登塔アクションMAP
+|CENTER:WIDTH(40):HEIGHT(40):|g
+|BGCOLOR(#ffd966):8|BGCOLOR(#ffd966):8||BGCOLOR(#93c47d):9|||BGCOLOR(#e06666):12||BGCOLOR(#f6b26b):13|||||||||BGCOLOR(#8e7cc3):21~22|||BGCOLOR(#e06666):22|
+|BGCOLOR(#f6b26b):7|BGCOLOR(#d9d9d9):14|BGCOLOR(#d9d9d9):14|BGCOLOR(#93c47d):9||||BGCOLOR(#ffd966):14|BGCOLOR(#ffd966):14|BGCOLOR(#93c47d):(15)|BGCOLOR(#6fa8dc):[16]|BGCOLOR(#8e7cc3):(17)|BGCOLOR(#e06666):18|BGCOLOR(#e06666):18|BGCOLOR(#f6b26b):18~19||BGCOLOR(#6fa8dc):21|BGCOLOR(#6fa8dc):21|BGCOLOR(#d9d9d9):25|BGCOLOR(#d9d9d9):25|BGCOLOR(#e06666):22|
+|BGCOLOR(#f6b26b):7|BGCOLOR(#d9d9d9):14|BGCOLOR(#d9d9d9):14||||BGCOLOR(#8e7cc3):11|BGCOLOR(#ffd966):14|BGCOLOR(#ffd966):14|BGCOLOR(#93c47d):(15)|BGCOLOR(#6fa8dc):[16]|BGCOLOR(#8e7cc3):(17)|BGCOLOR(#e06666):18|BGCOLOR(#e06666):18|BGCOLOR(#ffd966):19~20|BGCOLOR(#93c47d):20~21|BGCOLOR(#6fa8dc):21|BGCOLOR(#6fa8dc):21|BGCOLOR(#d9d9d9):25|BGCOLOR(#d9d9d9):25||
+|BGCOLOR(#f6b26b):7|BGCOLOR(#f6b26b):7|BGCOLOR(#f6b26b):7|BGCOLOR(#6fa8dc):10|||BGCOLOR(#8e7cc3):11||BGCOLOR(#6fa8dc):10|BGCOLOR(#6fa8dc):10||||||||BGCOLOR(#ffd966):23|||BGCOLOR(#f6b26b):22~23|
+||BGCOLOR(#f6b26b):7|BGCOLOR(#f6b26b):7|||||||||||||||||||
+||BGCOLOR(#e06666):6|BGCOLOR(#8e7cc3):5|||||||||||||||||||
+||BGCOLOR(#93c47d):3|BGCOLOR(#6fa8dc):4|||||||||||||||BGCOLOR(#93c47d):23~24||BGCOLOR(#6fa8dc):24|BGCOLOR(#e06666):22|
+||BGCOLOR(#ffd966):2|BGCOLOR(#ffd966):2||||||||||||||||BGCOLOR(#8e7cc3):25|BGCOLOR(#8e7cc3):25|BGCOLOR(#e06666):22|
+||BGCOLOR(#f6b26b):1|BGCOLOR(#f6b26b):1|||||||||||||||BGCOLOR(#ffd966):23|BGCOLOR(#8e7cc3):25|BGCOLOR(#8e7cc3):25||
+||BGCOLOR(#e06666):0|BGCOLOR(#e06666):0|||||||||||||||BGCOLOR(#ffd966):23|||BGCOLOR(#f6b26b):22~23|
+||BGCOLOR(#e06666):0|BGCOLOR(#e06666):0|||||||||||||||||||
+||BGCOLOR(#e06666):0|BGCOLOR(#e06666):0|||||||||||||||||||
+
+装備必要経験値
+|||合計|星|||||h
+||||1|2|3|4|5|h
+|HEADER:|HEADER:|RIGHT:|RIGHT:|RIGHT:|RIGHT:|RIGHT:|RIGHT:|c
+|装備|白|0||||||
+||緑|180|80|100||||
+||青|1380|370|460|550|||
+||紫|5760|1050|1310|1570|1830||
+||金|24000|3200|4000|4800|5600|6400|
+
+装備強化素材
+|||exp|粒子|ギルポ|h
+|HEADER:|HEADER:|RIGHT:|RIGHT:|RIGHT:|c
+|装備|白|10|||
+||緑|50|||
+||青|200|青100|1000|
+||紫|800|紫400|5600|
+||金|2400|金1200|18000|
+|晶石|クラスター|100|||
+||大|20|||
+||(普通)|5|||
+
+ロジック訓練
+77マス
+|┏|━|━|━|━|━|━|━|┓|
+|┃|┏|━|━|━|━|━|┓|┃|
+|┃|┃|扉|━|━|┓|ス|┗|┛|
+|┃|┃|┗|┓|BGCOLOR(black):|┃|┃|BGCOLOR(black):|BGCOLOR(black):|
+|┃|┃|┏|┛|┏|┛|┗|━|┓|
+|┃|┃|┗|┓|┃|┏|━|┓|┃|
+|┃|┗|┓|┃|┃|┃|┏|┛|┃|
+|┃|BGCOLOR(black):|鍵|┛|┗|┛|┗|ゴ|┃|
+|┗|━|━|━|━|━|━|━|┛|
+
+63マス
+|┏|━|━|━|┓|BGCOLOR(black):|┏|━|┓|
+|┗|┓|BGCOLOR(black):|ゴ|┃|BGCOLOR(black):|┗|ス|┃|
+|┏|┛|BGCOLOR(black):|┗|┛|BGCOLOR(black):|┏|┓|┃|
+|┃|┏|━|━|━|┓|┃|┃|┃|
+|┃|┗|━|━|┓|┃|┃|┃|┃|
+|┗|┓|BGCOLOR(black):|┏|┛|┗|┛|鍵|┃|
+|┏|┛|BGCOLOR(black):|┗|┓|BGCOLOR(black):|┏|┛|┃|
+|┗|━|扉|━|┛|BGCOLOR(black):|┗|━|┛|
+
+31マス
+|BGCOLOR(black):|┏|┓|┏|━|┓|
+|┏|鍵|┗|┛|ス|┛|
+|┗|┓|BGCOLOR(black):|BGCOLOR(black):|┏|┓|
+|┏|┛|BGCOLOR(black):|┏|┛|┃|
+|┃|ゴ|━|┛|扉|┛|
+|┗|━|━|━|┛|BGCOLOR(black):|
+
+アルケー性能
+||COLSPAN(2):バック効果|COLSPAN(2):チャージ(秒)|COLSPAN(2):持続(秒)|COLSPAN(2):チャージ(回)|COLSPAN(3):与ダメ系バフ/デバフ|単発|総合平均|h
+||与/被|属性|初期|最短|初期|最長|初期|最大|種類|(%)|持続|(%秒)|(%/秒)|h
+|HEADER:|CENTER:|CENTER:|RIGHT:|RIGHT:|RIGHT:|RIGHT:|CENTER:|CENTER:|CENTER:|RIGHT:|CENTER:|RIGHT:|RIGHT:|c
+|ジャイアントアーム|被|物理|300|200|20|30|-|-|-|-|-|||
+|オムニアムの盾|被|氷|90|60|10|20|-|-|与|25|通過ごとに7秒|525.00|8.75|
+|V型メカ|与|炎|200|200|30|30|-|-|-|-|-|||
+|時空の裂け目|被|炎|100|100|10|15|-|-|被|20|(10~15秒)|300.00|3.00|
+|幽閉空間|与|物理|240|120|10|10|-|-|-|-|-|||
+|ドローン|被|雷|120|120|15|25|-|-|与|5|5秒ごとに1層|375.00|3.13|
+|ホログラム投影|与|雷|180|120|15|20|-|-|与|50|(15~20秒)|1000.00|8.33|
+|デスコントロール|与|氷|90|90|8|8|-|-|-|-|-|||
+|||||||||||||||
+|ジェットパック|被|物理|120|60|-|-|2|3|-|-|-|||
+|ジェットスライダー|被|氷|90|30|-|-|-|-|-|-|-|||
+|フロスト砲|与|氷|240|150|20|24|-|-|-|-|-|||
+|溶岩爆弾|与|炎|45|30|-|-|-|-|-|-|-|||
+|磁気嵐|与|雷|100|-|10|10|-|-|-|-|-|||
+|量子ローブ|与|雷|120|80|20|20|-|-|与|100|3回|300.00|3.75|
+|多連装ミサイル|与|物理|60|60|8|12|-|-|-|-|-|||
+|ロボットアーム|与|炎|30|15|-|-|2|3|-|-|-|||
+|クーラント|被|炎|30|30|5|5|-|-|与|30|10秒|300.00|10.00|
+|シンギュラリティキューブ|与|雷|30|30|-|-|1|2|与|10|10秒|200.00|3.33|
+|オムニアム砲|与|炎|50|40|20|30|2|3|-|-|-|||
+|電磁パルス|被|雷|35|35|5|5|-|-|-|-|-|||
+
+アルケー凸欠片必要数
+|凸|SR|SSR|h
+|HEADER:|||c
+|0|20|30|
+|1|20|30|
+|2|30|45|
+|3|40|60|
+|4|50|75|
+|5|60|?|
+
+&link(https://github.com/thiramisu/tof-daily-routine-check-list-for-web){このサイトのgithub};
+
+&link(#header){ページ上部へ戻る};
 `,
         rengo: `TABLE
 REC = 0	ハイエナアリーナ	炎・雷抵抗	
@@ -215,27 +390,36 @@ REC = 6	深海基地	物理・氷抵抗
 REC = 6	ロストバレー		炎・氷強化
 `,
         island: `HEADER = 金属	繊維	エナジー	補給	装飾	建材	複合
+# 参考値
+# 手先,哨兵,精鋭,刺客,バッター 32or34
+# シルベストロの使徒,妖霊 182or184
+# ハウリーのボス,浪人,デシェリングの使徒 184(試行回数不足かも)
+# ラヴェンジャー系 52or54
+# ナルグチの使徒,レッド,イエロー,メカ,重火器兵,ドッグトレーナー 234(稀？に232)
+# 野生動物 44or46
+# フィールドボス 71or72(72で計算)
+# (ランダムなものは均等と仮定し、またエリアごとの期待値が奇数になる場合は超えない最大の偶数に)
 TABLE
-REC = 0号-円形間	630	630	0	0	0	0	0
-REC = 円形右下	630	630	0	0	0	0	0
+REC = 0号-円形間	632	632	0	0	0	0	0
+REC = 円形右下	632	632	0	0	0	0	0
 REC = 円形闘技場+アポ	420	420	72	72	0	50	50
-REC = 円形左下	132	130	0	0	0	0	0
-REC = 簡易ふ頭	0	0	1280	1280	0	0	0
-REC = 簡易ふ頭左下	0	0	157	157	0	0	0
-REC = その上	0	0	840	840	0	0	0
-REC = 簡易ふ頭左上	0	0	496	496	0	0	0
-REC = パドル湖右上	347	347	0	0	0	0	0
+REC = 円形左下	132	132	0	0	0	0	0
+REC = 簡易ふ頭	0	0	1285	1285	0	0	0
+REC = 簡易ふ頭左下	0	0	158	158	0	0	0
+REC = その上	0	0	838	838	0	0	0
+REC = 簡易ふ頭左上	0	0	498	498	0	0	0
+REC = パドル湖右上	348	348	0	0	0	0	0
 REC = ロベラグ	72	72	72	72	0	50	50
-REC = パドル湖右下	840	840	0	0	0	0	0
-REC = イーグルの巣	545	545	0	0	0	0	0
+REC = パドル湖右下	848	848	0	0	0	0	0
+REC = イーグルの巣	546	546	0	0	0	0	0
 REC = グラトニー	72	72	72	72	0	50	50
-REC = シーゲート	599	599	0	0	0	0	0
-REC = 鉱山拠点	0	0	1150	1150	0	0	0
-REC = 鉱山拠点の上	513	513	0	0	0	0	0
+REC = シーゲート	598	598	0	0	0	0	0
+REC = 鉱山拠点	0	0	1156	1156	0	0	0
+REC = 鉱山拠点の上	514	514	0	0	0	0	0
 REC = バルバロッサ	72	72	72	72	0	50	50
 REC = 鉄さびキャンプ	0	0	1228	1228	0	0	0
-REC = 鉄さびキャンプ左	514	514	0	0	0	0	0
-REC = 野生動物	0	0	0	0	5400	0	0
+REC = 鉄さびキャンプ左	512	512	0	0	0	0	0
+REC = 野生動物	0	0	0	0	5418	0	0
 `,
         stamina: `MAX = 180
 STEP = 30
@@ -244,10 +428,15 @@ BUTTONS = -90,-30,30
 `,
         override: `OVERRIDE
 REC = ワームホール	5	2022/08/11	５日
+REC = 月課サンプル	-8
 `,
-        config: `DATE_CHANGE_HOUR = 5
-WINDOW_TOPMOST = True
-WINDOW_POSITION = 0	0	0	0
+        config: `GAME_PROCESSE_ID = qrsl
+DATE_CHANGE_HOUR = 5
+WINDOW_TOPMOST = False
+DC_INC_FLG = False
+DISP_INC_COL = True
+DISP_DEC_COL = True
+WINDOW_POSITION = 245	628	664	559
 MINI_WINDOW_POSITION = 0	0
 `,
         get savedata() {
@@ -255,6 +444,7 @@ MINI_WINDOW_POSITION = 0	0
 ISLAND_VALUES = 0	0	0	0	0	0	0
 FILTER_DURATION = 0
 FILTER_HAS_DONE = 0
+DISP_NXD_COL = False
 `;
         }
       },
@@ -262,8 +452,10 @@ FILTER_HAS_DONE = 0
   
   const
     parseInt = string => window.parseInt(string),
+    isTouchDevice = (() => window.ontouchstart === null)(),
     $id = id => document.getElementById(id),
     $elm = tagName => document.createElement(tagName),
+    $focusAll = (e) => { e.target.select(); },
     $timeFormatter = new Intl.DateTimeFormat("ja-JP", {
       dateStyle: "short",
       timeStyle: "medium"
@@ -285,23 +477,157 @@ FILTER_HAS_DONE = 0
     $timeFormatter4 = new Intl.DateTimeFormat("ja-JP", {
       dateStyle: "short"
     }),
-    $time4 = date => $timeFormatter4.format(date);
+    $time4 = date => $timeFormatter4.format(date),
+    $span = (styleName, styleValue, elementName = "span") => {
+      const span = $elm(elementName);
+      span.style[styleName] = styleValue;
+      return span;
+    },
+    wikiPlugins = Object.freeze({
+      br() { return $elm("br"); },
+      img([url, size]) {
+        if (!url.startsWith("https://cdn.discordapp.com/attachments/")) {
+          return `${ url }(自動表示されるのはdiscordの画像のみです、念のため)`;
+        }
+        const img = $elm("img");
+        img.src = url;
+        if (size !== undefined && !/\D/.test(size)) {
+          img.addEventListener("load", () => {
+            const guide = $id("guide");
+            guide.hidden = false;
+            img.style.width = img.clientWidth * size / 100 + "px";
+            img.style.height = "auto";
+            guide.hidden = true;
+          });
+        }
+        return img;
+      },
+      color([color, backgroundColor], text) {
+        const span = $elm("span");
+        if (color !== undefined && /^#?[0-9A-Za-z]+$/.test(color)) {
+          span.style.color = color;
+        }
+        if (backgroundColor !== undefined && /^#?[0-9A-Za-z]+$/.test(backgroundColor)) {
+          span.style.backgroundColor = backgroundColor;
+        }
+        span.textContent = text;
+        return span;
+      },
+      link([url], text) {
+        const a = $elm("a");
+        a.href = url;
+        a.textContent = text ?? url;
+        return a;
+      },
+    });
+
+  class Menu {
+    constructor(rootElement) {
+      this.#root = rootElement;
+        
+      let focusedMenu = null;
+      this.#onClick = (e) => {
+        if (e.target.tagName === "INPUT") {
+          return;
+        }
+        if (focusedMenu === e.currentTarget) {
+          focusedMenu.blur();
+          return;
+        }
+        focusedMenu?.blur();
+        focusedMenu = e.currentTarget;
+      };
+      this.#onMouseEnter = (e) => {
+        if (focusedMenu === null) {
+          return;
+        }
+        e.stopPropagation();
+        e.currentTarget.focus();
+        focusedMenu = e.currentTarget;
+      };
+      this.#onBlur = (e) => {
+        focusedMenu = null;
+      };
+    }
+
+    /**
+     * @param {string} name
+     * @param {string} accessKey
+     * @param {[label: string, (Function | string)][]} functions
+     */
+    appendButton(name, accessKey, functions) {
+      const
+        button = $elm("div"),
+        text = $elm("div"),
+        outer = $elm("div");
+      button.tabIndex = 0;
+      button.accessKey = accessKey;
+      button.classList.add("menu-dropdown-button");
+      text.textContent = name;
+      text.classList.add("menu-dropdown-text");
+      outer.classList.add("menu-dropdown-outer");
+      outer.hidden = true;
+      button.append(text, outer);
+      outer.append(...functions.map(this.#getOption));
+      this.#root.appendChild(button);
+      button.addEventListener("mouseenter", this.#onMouseEnter);
+      button.addEventListener("click", this.#onClick);
+      button.addEventListener("blur", this.#onBlur);
+      return this;
+    }
     
+    #getOption([text, fn]) {
+      if (text === "hr") {
+        const hr = $elm("div");
+        hr.classList.add("menu-dropdown-hr");
+        return hr;
+      }
+      const
+        label = $elm("label"),
+        checkbox = $elm("input"),
+        indicator = $elm("div");
+      label.classList.add("menu-dropdown");
+      checkbox.type = "checkbox";
+      checkbox.hidden = true;
+      indicator.classList.add("menu-dropdown-checkbox");
+      label.append(checkbox, indicator, text);
+      if (fn === undefined) {
+        return label;
+      }
+      if (typeof fn === "string") {
+        checkbox.id = fn;
+      }
+      else {
+        checkbox.addEventListener("change", fn);
+      }
+      return label;
+    }
+
+    #root;
+    #onMouseEnter;
+    #onClick;
+    #onBlur;
+  }
+
   class Todo {
     /**
      * @param {SaveData} saveData
      * @param {number} id
-     * @param {number} cycleType 0なら日課、1なら週課
+     * @param {number} cycleType 0なら日課、1なら週課、2なら個別
      * @param {string} name
      * @param {number} progressMax
      * @param {number} progressCurrent
+     * @param {boolean} isVisible
+     * @param {number} [cycleTypeOverride] 8なら月課
      */
-    constructor(saveData, id, cycleType, name, progressMax, progressCurrent) {
+    constructor(saveData, id, cycleType, name, progressMax, progressCurrent, isVisible, cycleTypeOverride = cycleType) {
       this.#saveData = saveData;
       this.#id = id;
-      this.#cycleType = cycleType;
+      this.#cycleType = cycleTypeOverride;
+      this.#cycleTypeForSave = cycleType;
       this.#name = name;
       this.#progressBar = new ProgressBar(progressMax, progressCurrent);
+      this.#isVisible = isVisible;
     }
     
     reset() {
@@ -316,7 +642,7 @@ FILTER_HAS_DONE = 0
     }
     
     toRec() {
-      return `REC = ${ this.#cycleType }\t${ this.#name }\t${ this.#progressBar.max }\t${ this.#progressBar.current }`
+      return `REC = ${ this.#cycleTypeForSave }\t${ this.#name }\t${ this.#progressBar.max }\t${ this.#progressBar.current }\t${ this.#isVisible ? "True" : "False" }`
     }
 
     /**
@@ -345,13 +671,23 @@ FILTER_HAS_DONE = 0
     
     #createTR() {
       const tr = $elm("tr");
-      tr.append(
-        ...([this.#id, Const.CycleTypeName[this.#cycleType], this.#name].map((content) => {
-          const td = $elm("td");
-          td.textContent = content;
-          return td;
-        }))
-      );
+      tr.appendChild(this.#toTd(this.#id));
+      const
+        td = $elm("td"),
+        checkbox = $elm("input");
+      checkbox.type = "checkbox";
+      if (this.#isVisible) {
+        checkbox.checked = true;
+        tr.classList.toggle("visible");
+      }
+      checkbox.addEventListener("change", (e) => {
+        this.#isVisible = e.currentTarget.checked;
+        tr.classList.toggle("visible");
+        this.saveData.saveChecklist();
+      });
+      td.appendChild(checkbox);
+      tr.appendChild(td);
+      tr.append(...([Const.CycleTypeName[this.#cycleType], this.#name].map(this.#toTd)));
       const 
         button1 = $elm("button"),
         button2 = $elm("button");
@@ -360,8 +696,10 @@ FILTER_HAS_DONE = 0
       button2.classList.add("progress-button");
       button1.textContent = "－";
       button2.textContent = "＋";
-      button1.addEventListener("click", () => { this.#progressBar.decrease(); this.#saveData.saveAll(); });
-      button2.addEventListener("click", () => { this.#progressBar.increase(); this.#saveData.saveAll(); });
+      button1.addEventListener("click", (e) => { this.#progressBar.decrease(); this.#saveData.saveChecklist(); });
+      button2.addEventListener("click", (e) => { this.#progressBar.increase(); this.#saveData.saveChecklist(); });
+      button1.addEventListener("dblclick", (e) => { e.stopPropagation(); });
+      button2.addEventListener("dblclick", (e) => { e.stopPropagation(); });
       tr.append(
         ...([this.#progressBar.div, button1, button2].map((content) => {
           const td = $elm("td");
@@ -369,14 +707,28 @@ FILTER_HAS_DONE = 0
           return td;
         }))
       );
+      tr.addEventListener("dblclick", (e) => {
+        if (this.#saveData.get("dcIncFlg") === "True") {
+          this.#progressBar.increase();
+          this.#saveData.saveChecklist(); 
+        }
+      })
       this.#tr = tr;
       return tr;
     }
-    
+
+    #toTd(text) {
+      const td = $elm("td");
+      td.textContent = text;
+      return td;
+    }
+
     #saveData;
     #id;
     #cycleType;
+    #cycleTypeForSave;
     #name;
+    #isVisible;
     #tr;
     #progressBar;
   }
@@ -396,16 +748,17 @@ FILTER_HAS_DONE = 0
      * @param {string} name
      * @param {number} progressMax
      * @param {number} progressCurrent
+     * @param {boolean} isVisible
      * @param {OverrideOption} overrideOption
      */
-    constructor(saveData, id, cycleType, name, progressMax, progressCurrent, overrideOption) {
-      super(saveData, id, cycleType, name, progressMax, progressCurrent);
+    constructor(saveData, id, cycleType, name, progressMax, progressCurrent, isVisible, overrideOption) {
+      super(saveData, id, cycleType, name, progressMax, progressCurrent, isVisible, (overrideOption.durationDays > 0) ? undefined : -overrideOption.durationDays);
       this.#durationDays = overrideOption.durationDays;
       this.#nextDate = this.#convertUTCDayToLocalDay(overrideOption.date);
       this.#durationString = overrideOption.durationString;
     }
       
-    reset() { return; }
+    reset() { if (!this.#isCycleTypeOnly) { return; } super.reset(); }
 
     /**
      * @param {Date} nowIngame ゲーム内時間
@@ -419,7 +772,8 @@ FILTER_HAS_DONE = 0
     }
 
     toOverrideRec() {
-      return `REC = ${ this.name }\t${ this.#durationDays }\t${ $time4(this.#nextDate) }\t${ this.#durationString }`;
+      return (this.#isCycleTypeOnly) ? `REC = ${ this.name }\t${ this.#durationDays }`
+        : `REC = ${ this.name }\t${ this.#durationDays }\t${ $time4(this.#nextDate) }\t${ this.#durationString }`;
     }
       
     get tr() {
@@ -428,10 +782,6 @@ FILTER_HAS_DONE = 0
 
     getWillReset(nowIngame = this.saveData.getIngameDate()) {
       return this.#nextDate.getTime() <= nowIngame.getTime();
-    }
-
-    get #duration() {
-      return this.#durationDays * 24 * 60 * 60 * 1000;
     }
 
     #applyToInput() {
@@ -449,24 +799,34 @@ FILTER_HAS_DONE = 0
     }
 
     #createTR() {
-      const
-        tr = super.tr,
-        td = $elm("td"),
-        input = $elm("input");
-      input.type = "date";
-      input.classList.add("next-date");
-      input.addEventListener("change", (e) => {
-        this.#nextDate = this.#convertUTCDayToLocalDay(e.target.valueAsDate);
-        this.#calcNextDate();
-        this.saveData.saveAll();
-      });
-      td.appendChild(input);
-      tr.appendChild(td);
-      tr.children[1].textContent = this.#durationString;
+      const tr = super.tr;
+      if (!this.#isCycleTypeOnly) {
+        const
+          td = $elm("td"),
+          input = $elm("input");
+        input.type = "date";
+        input.classList.add("next-date");
+        input.addEventListener("change", (e) => {
+          this.#nextDate = this.#convertUTCDayToLocalDay(e.target.valueAsDate);
+          this.#calcNextDate();
+          this.saveData.saveOverride();
+        });
+        td.appendChild(input);
+        tr.appendChild(td);
+        this.#input = input;
+        this.#applyToInput();
+        tr.children[2].textContent = this.#durationString;
+      }
       this.#tr = tr;
-      this.#input = input;
-      this.#applyToInput();
       return tr;
+    }
+
+    get #duration() {
+      return this.#durationDays * 24 * 60 * 60 * 1000;
+    }
+
+    get #isCycleTypeOnly() {
+      return this.#durationDays <= 0;
     }
 
     #durationDays;
@@ -506,7 +866,7 @@ FILTER_HAS_DONE = 0
         return;
       }
       this.#inner.style.width = `calc(100% * ${ this.#current } / ${ this.#max })`;
-      this.#text.textContent = `${this.#current} / ${ this.#max }`;
+      this.#input.value = this.#current;
       return this;
     }
     
@@ -516,17 +876,26 @@ FILTER_HAS_DONE = 0
 
     #createDiv() {
       const
-        outer = $elm("div"),
+        outer = $elm("label"),
         inner = $elm("div"),
-        text = $elm("div");
+        text = $elm("div"),
+        span = $elm("span"),
+        input = $elm("input");
       outer.classList.add("progress-bar-outer");
       inner.classList.add("progress-bar-inner");
       text.classList.add("progress-bar-text");
+      input.classList.add("progress-bar-input");
+      span.textContent = `/ ${ this.#max }`;
+      input.addEventListener("focus", $focusAll);
+      input.addEventListener("change", (e) => {
+        this.setCurrent(parseInt(e.target.value));
+      });
       outer.appendChild(inner);
       outer.appendChild(text);
+      text.append(input, span);
       this.#div = outer;
       this.#inner = inner;
-      this.#text = text;
+      this.#input = input;
       return outer;
     }
     
@@ -534,7 +903,7 @@ FILTER_HAS_DONE = 0
     #current;
     #div;
     #inner;
-    #text;
+    #input;
   }
   
   class TodoManager {
@@ -545,7 +914,15 @@ FILTER_HAS_DONE = 0
       const todos = saveData.todos;
       this.#todos = todos;
       this.#saveData = saveData;
-      
+      this.#isEnabledDoubleClickIncrement = this.#saveData.get("dcIncFlg") === "True";
+      const checkbox = $id("increment-on-double-click");
+      checkbox.checked = this.#isEnabledDoubleClickIncrement;
+      checkbox.addEventListener("change", (e) => {
+        const isEnabled = e.currentTarget.checked;
+        this.#isEnabledDoubleClickIncrement = isEnabled;
+        this.#saveData.set("dcIncFlg", isEnabled ? "True" : "False");
+      });
+
       $id("todo").append(...todos.map((todo) => todo.tr));
 
       const durationFlag = saveData.getAsNumber("filterDuration");
@@ -554,14 +931,16 @@ FILTER_HAS_DONE = 0
       this.#weekly = $id("weekly-filter");
       this.#weekly.checked = (durationFlag & 2) !== 0;
       this.#monthly = $id("monthly-filter");
-      this.#monthly.checked = (durationFlag & 4) !== 0;
+      this.#monthly.checked = (durationFlag & 256) !== 0;
+      this.#unscheduled = $id("unscheduled-filter");
+      this.#unscheduled.checked = (durationFlag & 4) !== 0;
         
       this.#hasDone = $id("has-done-filter");
       this.#hasDone.value = saveData.get("filterHasDone");
 
       this.#filter();
       
-      for (const element of [this.#daily, this.#weekly, this.#monthly, this.#hasDone]) {
+      for (const element of [this.#daily, this.#weekly, this.#monthly, this.#unscheduled, this.#hasDone]) {
         element.addEventListener("change", this.#filter.bind(this));
       }
       $id("apply-filter").addEventListener("click", this.#filter.bind(this));
@@ -570,7 +949,7 @@ FILTER_HAS_DONE = 0
         switch(e.target.value) {
           case "monthly-reset":
             if (window.confirm("[進捗の初期化]\n月間課題の進捗を初期化します。\nよろしいですか？")) {
-              this.reset(4);
+              this.reset(256);
             }
             break;
           case "weekly-reset":
@@ -583,6 +962,11 @@ FILTER_HAS_DONE = 0
               this.reset(1);
             }
             break;
+          case "unscheduled-reset":
+            if (window.confirm("[進捗の初期化]\n個別課題の進捗を初期化します。\nよろしいですか？")) {
+              this.reset(4);
+            }
+            break;
           default:
             return;
         }
@@ -591,7 +975,7 @@ FILTER_HAS_DONE = 0
     }
     
     /**
-     * @param {number} cycleTypeFlags 1=日課, 2=週課 の論理和。0なら全て
+     * @param {number} cycleTypeFlags 1=日課, 2=週課, 4=個別, 256=月課 の論理和。0なら全て
      */
     reset(cycleTypeFlags, nowIngame = this.#saveData.getIngameDate()) {
       for (const todo of this.#todos) {
@@ -600,16 +984,19 @@ FILTER_HAS_DONE = 0
         }
         todo.resetIfNeeded?.(nowIngame);
       }
-      this.#saveData.saveAll();
+      this.#saveData.saveChecklist();
+      this.#saveData.saveOverride();
     }
 
     getWillResetOverrideNames() {
       return this.#todos.flatMap(this.#overridedAndWillReset);
     }
 
+    get isEnabledDoubleClickIncrement() { return this.#isEnabledDoubleClickIncrement; }
+
     #filter() {
       const 
-        durationFlag = this.#daily.checked + this.#weekly.checked * 2 + this.#monthly.checked * 4,
+        durationFlag = this.#daily.checked + this.#weekly.checked * 2 + this.#monthly.checked * 256 + this.#unscheduled.checked * 4,
         hasDoneFlag = parseInt(this.#hasDone.value);
       for (const todo of this.#todos) {
         todo.setVisible(
@@ -632,7 +1019,9 @@ FILTER_HAS_DONE = 0
     #daily;
     #weekly;
     #monthly;
+    #unscheduled;
     #hasDone;
+    #isEnabledDoubleClickIncrement;
   }
   
   class WdayRengo {
@@ -691,6 +1080,111 @@ FILTER_HAS_DONE = 0
     #nameDescriptionPairs;
   }
 
+  class MarkDownParser {
+    // colspan, rowspan 未実装
+    static parseTable(target, text) {
+      const fragments = [];
+      let
+        table = $elm("table"),
+        columnStyles = [],
+        tableStyle = {};
+      for (const line of text.split("\n")) {
+        const row = line.match(/^[|](?<tr>.+?)[|](?<type>[a-z]?)$/)?.groups;
+        if (row === undefined) {
+          if (table.children.length !== 0) {
+            fragments.push(table);
+            table = $elm("table");
+          }
+          fragments.push(...this.#convertTags(line), $elm("br"));
+          columnStyles = [];
+          tableStyle = {};
+          continue;
+        }
+        if (row.type === "g") {
+          tableStyle = this.#getStyleString(row.tr.split("|")[0]);
+          continue;
+        }
+        if (row.type === "c") {
+          columnStyles = row.tr.split("|").map(this.#getStyleString);
+          continue;
+        }
+        const tr = $elm("tr");
+        let column = 0;
+        for (const text of row.tr.split("|")) {
+          const
+            contentIndex = text.lastIndexOf(":") + 1,
+            isHeader = text[contentIndex] === "~";
+          tr.appendChild(this.#getCell(
+            text.slice(contentIndex + isHeader),
+            this.#getStyleString(text),
+            columnStyles[column++],
+            tableStyle,
+            row.type === "h" || isHeader
+          ));
+        }
+        table.appendChild(tr);
+      }
+      if (table.children.length !== 0) {
+        fragments.push(table);
+      }
+      target.append(...fragments);
+    }
+
+    static #getStyleString(text) {
+      text = `:${ text }`;
+      const
+        isHeader = text.includes(":HEADER:"),
+        colSpan = text.match(/(?<=:COLSPAN[(])\d+(?=[)]:)/)?.[0],
+        rowSpan = text.match(/(?<=:ROWSPAN[(])\d+(?=[)]:)/)?.[0],
+        width = text.match(/(?<=:WIDTH[(])\d+(?=[)]:)/)?.[0],
+        height = text.match(/(?<=:HEIGHT[(])\d+(?=[)]:)/)?.[0],
+        size = text.match(/(?<=:SIZE[(])\d+(?=[)]:)/)?.[0],
+        color = text.match(/(?<=:COLOR[(])#?[0-9a-zA-Z]+(?=[)]:)/)?.[0],
+        backgroundColor = text.match(/(?<=:BGCOLOR[(])#?[0-9a-zA-Z]+(?=[)]:)/),
+        textAlign = text.includes(":LEFT:") ? "left"
+          : text.includes(":CENTER:") ? "center"
+          : text.includes(":RIGHT:") ? "right"
+          : undefined,
+        verticalAlign = text.includes(":TOP:") ? "top"
+          : text.includes(":MIDDLE:") ? "middle"
+          : text.includes(":BOTTOM:") ? "bottom"
+          : undefined;
+      return {
+        isHeader,
+        colSpan,
+        rowSpan,
+        width: width ? parseInt(width) * 0.1 + "rem" : undefined,
+        height: height ? parseInt(height) * 0.1 + "rem" : undefined,
+        size: size ? parseInt(size) * 0.1 + "rem" : undefined,
+        color,
+        backgroundColor,
+        textAlign,
+        verticalAlign
+      };
+    }
+
+    static #getCell(text, cellStyle, columnStyle, tableStyle, isHeader) {
+      const element = $elm(columnStyle?.isHeader || isHeader ? "th" : "td");
+      element.colSpan = cellStyle.colSpan;
+      element.rowSpan = cellStyle.rowSpan;
+      element.append(...this.#convertTags(text));
+      for (const [key, value] of Object.entries(cellStyle)) {
+        element.style[key] = value ?? columnStyle?.[key] ?? tableStyle[key];
+      }
+      return element;
+    }
+
+    // textの最初に&が書かれてるような挙動をするが実用上問題にならなそうなので放置
+    static #convertTags(text) {
+      return text.split("&").flatMap(this.#applyPlugins);
+    }
+
+    static #applyPlugins(text) {
+      const format = text.match(/^(?<name>[0-9a-zA-Z]{1,10})(?:[(](?<arguments>[^)]*?)[)])?(?:{(?<text>.*?)})?;(?<restText>.*?)$/)?.groups;
+      return wikiPlugins[format?.name] ? [wikiPlugins[format?.name](format.arguments?.split(","), format.text), format.restText] : text;
+    }
+  }
+
   class StaminaEstimator {
     /**
      * @param {SaveData} saveData
@@ -730,20 +1224,15 @@ FILTER_HAS_DONE = 0
         this.#zeroTime = Date.now() - this.#max * this.#timePerStamina;
         this.hardReload();
       });
+
       
-      $id("functions").addEventListener("change", ((e) => {
-        switch(e.target.value) {
-          case "stamina-delta-change":
-            const deltaSecondString = prompt("[活力回復タイミングの変更]\n何秒タイミングをずらしますか？(負数可)");
-            if (deltaSecondString === null) {
-              break;
-            }
-            this.#addZeroTime(parseInt(deltaSecondString) * 1000);
-            break;
-          default:
-            return;
+      $id("stamina-delta-change").addEventListener("change", ((e) => {
+        e.currentTarget.checked = false;
+        const deltaSecondString = prompt("[活力回復タイミングの変更]\n何秒タイミングをずらしますか？(負数可)");
+        if (deltaSecondString === null) {
+          return;
         }
-        e.target.value = "default";
+        this.#addZeroTime(parseInt(deltaSecondString) * 1000);
       }).bind(this));
     }
 
@@ -856,6 +1345,7 @@ FILTER_HAS_DONE = 0
         input.classList.add("cell-input");
         input.value = initialValues?.[index] ?? 0;
         input.dataset.index = index++;
+        input.addEventListener("focus", $focusAll);
         input.addEventListener("change", calcAndSave);
         td.appendChild(input);
         inputTR.appendChild(td);
@@ -1085,7 +1575,7 @@ ${ todos.flatMap(this.#toOverrideTodoRec).join("\n") }
     }
     
     #parseTodoRec(line) {
-      const data = line.match(/^(?<cycleType>\d+)\t(?<name>.+?)\t(?<progressMax>\d+)\t(?<progressCurrent>\d+)/).groups;
+      const data = line.match(/^(?<cycleType>\d+)\t(?<name>.+?)\t(?<progressMax>\d+)\t(?<progressCurrent>\d+)\t(?<isVisible>.+?)(?:\n|$)/).groups;
       if (this.#override.has(data.name)) {
         return new TodoOverride(
           this.#saveData,
@@ -1094,6 +1584,7 @@ ${ todos.flatMap(this.#toOverrideTodoRec).join("\n") }
           data.name,
           parseInt(data.progressMax),
           parseInt(data.progressCurrent),
+          data.isVisible === "True",
           this.#override.get(data.name)
         );
       }
@@ -1103,7 +1594,8 @@ ${ todos.flatMap(this.#toOverrideTodoRec).join("\n") }
         parseInt(data.cycleType),
         data.name,
         parseInt(data.progressMax),
-        parseInt(data.progressCurrent)
+        parseInt(data.progressCurrent),
+        data.isVisible === "True"
       );
     }
     
@@ -1114,7 +1606,7 @@ ${ todos.flatMap(this.#toOverrideTodoRec).join("\n") }
       return {
         name,
         durationDays: parseInt(durationDays),
-        date: new Date(`${ parseInt(zeroDate.year) }-${ parseInt(zeroDate.month) }-${ parseInt(zeroDate.day) }`),
+        date: new Date(`${ parseInt(zeroDate?.year) }-${ parseInt(zeroDate?.month) }-${ parseInt(zeroDate?.day) }`),
         durationString
       };
     }
@@ -1160,8 +1652,11 @@ ${ todos.flatMap(this.#toOverrideTodoRec).join("\n") }
   
   class SaveData {
     constructor() {
-      $id("functions").addEventListener("change", (e) => {
-        if (e.target.value !== "clear-save" || !confirm("[全ての設定を削除]\n削除すると全ての設定項目が初期状態に戻り、進捗も失われます。\n本当に削除しますか？")) {
+      const clearSave = $id("clear-save");
+      clearSave.parentNode.classList.add("caution");
+      clearSave.addEventListener("change", (e) => {
+        e.currentTarget.checked = false;
+        if (!confirm("[全ての設定を削除]\n削除すると全ての設定項目が初期状態に戻り、進捗も失われます。\n本当に削除しますか？")) {
           return;
         }
         for(const name of Object.values(Const.SaveName)) {
@@ -1173,8 +1668,7 @@ ${ todos.flatMap(this.#toOverrideTodoRec).join("\n") }
     }
 
     set(key, value) {
-      this.#checkKeyAvailable(key);
-      this.#data[key] = value;
+      this.#getSaveObject(key)[key] = value;
       this.requestToSave();
     }
 
@@ -1183,8 +1677,7 @@ ${ todos.flatMap(this.#toOverrideTodoRec).join("\n") }
     }
 
     get(key) {
-      this.#checkKeyAvailable(key);
-      return this.#data[key];
+      return this.#getSaveObject(key)[key];
     }
 
     getAsNumber(key) {
@@ -1205,13 +1698,15 @@ ${ todos.flatMap(this.#toOverrideTodoRec).join("\n") }
      * @param {number} [time] デフォルトは現在日時
      */
     getIngameDate(time = Date.now()) {
-      const deltaHours = (this.#dateChangeHour < 12) ? - this.#dateChangeHour
-        : 24 - this.#dateChangeHour;
+      const
+        dateChangeHour = this.#dateChangeHour,
+        deltaHours = (dateChangeHour < 12) ? - dateChangeHour
+          : 24 - dateChangeHour;
       return new Date(time + deltaHours * 60 * 60 * 1000);
     }
 
     load() {
-      this.#dateChangeHour = parseInt(this.#load("config").dateChangeHour);
+      this.#config = this.#load("config");
       this.#data = this.#load("savedata");
       const [date, todos] = this.#iniParser.checklist(
           this.#getSaveDataOrDefault("checklist"),
@@ -1222,6 +1717,7 @@ ${ todos.flatMap(this.#toOverrideTodoRec).join("\n") }
       this.#rengoes = this.#load("rengo");
       this.#stamina = this.#load("stamina");
       this.#island = this.#load("island");
+      this.#dateChangeHour = this.getAsNumber("dateChangeHour");
       return this;
     }
     
@@ -1236,21 +1732,19 @@ ${ todos.flatMap(this.#toOverrideTodoRec).join("\n") }
       setTimeout(this.save, 0, this);
     }
 
-    saveAll(that = this) {
-      localStorage.setItem(Const.SaveName.checklist, that.#iniParser.toTodoIni(that.#todos));
-      that.saveOverride();
-      this.save();
-      return that;
-    }
-
-    save(that = this) {
-      that.#hasSaveRequested = false;
-      localStorage.setItem(Const.SaveName.savedata, that.#toIni());
+    saveChecklist() {
+      localStorage.setItem(Const.SaveName.checklist, this.#iniParser.toTodoIni(this.#todos));
     }
 
     saveOverride() {
       localStorage.setItem(Const.SaveName.override, this.#iniParser.toOverrideTodoIni(this.#todos));
       return this;
+    }
+
+    save(that = this) {
+      that.#hasSaveRequested = false;
+      localStorage.setItem(Const.SaveName.config, that.#toIni(that.#config));
+      localStorage.setItem(Const.SaveName.savedata, that.#toIni(that.#data));
     }
       
     get date() { return this.#date; }
@@ -1263,15 +1757,14 @@ ${ todos.flatMap(this.#toOverrideTodoRec).join("\n") }
       return this.#iniParser[name](this.#getSaveDataOrDefault(name));
     }
 
-    #checkKeyAvailable(key) {
-      if (this.#data[key] === undefined) {
-        throw new Error(`セーブデータにkey"${ key }"が存在しません`);
-      }
+    // オリジナルに存在するキーかどうかで保存先を分ける
+    #getSaveObject(key) {
+      return (this.#data[key] !== undefined) ? this.#data : this.#config;
     }
 
-    #toIni() {
+    #toIni(data) {
       const lines = [];
-      for(const [key, value] of Object.entries(this.#data)) {
+      for(const [key, value] of Object.entries(data)) {
         lines.push(`${ IniParser.getUpperSnakeCaseFromLowerCamelCase(key) } = ${ value }`);
       }
       return lines.join("\n");
@@ -1293,6 +1786,7 @@ ${ todos.flatMap(this.#toOverrideTodoRec).join("\n") }
     get #iniParser() { return this.#_iniParser ?? this.#createIniParser(); }
 
     #hasSaveRequested;
+    #config;
     #dateChangeHour;
     #data;
     #date;
@@ -1378,16 +1872,15 @@ ${ todos.flatMap(this.#toOverrideTodoRec).join("\n") }
           : "[進捗の初期化]\n日付が変わりました。\n日課の進捗状況をリセットしますか？")
           + (additionalWillResetTodoNames.length > 0 ? `\n(加えて、${ additionalWillResetTodoNames.join("、") }の進捗状況もリセットされます)` : "");
       if (!confirm(confirmString)) {
-        this.#saveData.saveAll();
+        this.#saveData.saveChecklist();
         this.#lastUpdateIngameDate = ingameDate;
         return;
       }
       // 月や週が変わったなら月課や週課もリセット
-      this.#todoManager.reset(isDefferentMonth * 4 + isDefferentWeek * 2 + 1);
+      this.#todoManager.reset(isDefferentMonth * 256 + isDefferentWeek * 2 + 1);
       
       this.#saveData.rengoes[last.getDay()].setActive(false);
       this.#saveData.rengoes[ingameDate.getDay()].setActive(true);
-      this.#saveData.saveAll();
       this.#lastUpdateIngameDate = ingameDate;
     }
     
@@ -1587,10 +2080,31 @@ ${ todos.flatMap(this.#toOverrideTodoRec).join("\n") }
   }
   
   (function initialize() {
-    $id("help").addEventListener("input", (e) => {
-      switch (e.target.value) {
-        case "version-info":
-          alert(`[バージョン情報]
+    new Menu($id("header"))
+      .appendButton("機能", "s", [
+      ["月間課題の進捗を初期化", "monthly-reset"],
+      ["週間課題の進捗を初期化", "weekly-reset"],
+      ["日間課題の進捗を初期化", "daily-reset"],
+      ["個別課題の進捗を初期化", "unscheduled-reset"],
+      ["hr"],
+      ["活力回復のタイミングを調整", "stamina-delta-change"],
+      ["初期化", "clear-save"]
+    ]).appendButton("表示", "i", [
+      ["月間課題を表示", "monthly-filter"],
+      ["週間課題を表示", "weekly-filter"],
+      ["日間課題を表示", "daily-filter"],
+      ["個別課題を表示", "unscheduled-filter"],
+      ["有効なもののみ表示", "vis-col-toggle"],
+      ["hr"],
+      ["加算列を表示", "inc-col-toggle"],
+      ["減算列を表示", "dec-col-toggle"],
+      ["次回更新列を表示", "nxd-col-toggle"]
+    ]).appendButton("設定", "c", [
+      ["内容をダブルクリックで進捗を進める", "increment-on-double-click"]
+    ]).appendButton("ヘルプ", "i", [
+      ["バージョン情報", (e) => {
+        e.target.checked = false;
+        alert(`[バージョン情報]
 幻塔 Daily Routine Check List for Web
 ver. 0.2
 programmed by ラスミティ @2022/11/17
@@ -1600,11 +2114,10 @@ Original:
 ver. 0.2.1β
 programmed by 029chan @2022/11/01
 `
-          );
-      }
-      e.target.value = "default";
-    });
-    
+        );
+      }]
+    ]);
+
     new TabManager("main-nav");
     new FileLoader(new Set(["config", "savedata", "checklist", "override", "rengo", "stamina", "island"]));
     new Editor($id("settings-ini-name"), $id("settings-ini-editor"), $id("settings-ini-save"), $id("settings-ini-load"), $id("settings-ini-clear"), $id("settings-ini-export"));
@@ -1622,13 +2135,55 @@ programmed by 029chan @2022/11/01
     Clock.start($id("clock"), data.stamina, dailyResetter);
     
     new Memo();
- 
+
+    const
+      vis = $id("vis-col-toggle"),
+      inc = $id("inc-col-toggle"),
+      dec = $id("dec-col-toggle"),
+      nxd = $id("nxd-col-toggle"),
+      progressTable = $id("progress-table"),
+      toggle = (e) => {
+        const 
+          target = e.currentTarget,
+          isHidden = !target.checked;
+        if (isHidden) {
+          progressTable.classList.add(target.dataset.className);
+        }
+        else {
+          progressTable.classList.remove(target.dataset.className);
+        }
+        if (target.dataset.dataName !== undefined) {
+          data.set(target.dataset.dataName, isHidden ? "False" : "True");
+        }
+      };
+    vis.dataset.className = "show-vis-col";
+    inc.dataset.className = "hide-inc-col";
+    dec.dataset.className = "hide-dec-col";
+    nxd.dataset.className = "hide-nxd-col";
+    inc.dataset.dataName = "dispIncCol";
+    dec.dataset.dataName = "dispDecCol";
+    nxd.dataset.dataName = "dispNxdCol";
+    vis.checked = true;
+    vis.addEventListener("change", toggle);
+    for (const element of [inc, dec, nxd]) {
+      if (data.get(element.dataset.dataName) === "True") {
+        element.checked = true;
+      }
+      else {
+        progressTable.classList.add(element.dataset.className);
+      }
+      element.addEventListener("change", toggle);
+    }
+
     /*
     if (Notification.permission !== "granted") {
       Notification.requestPermission();
     }
     new Notification("humu");
     */
+
+    MarkDownParser.parseTable($id("guide"), localStorage.getItem(Const.SaveName.guide) ?? Const.DefaultData.guide);
+    console.log(`isTouchDevice: ${ isTouchDevice }`);
   })();
 });
   </script>

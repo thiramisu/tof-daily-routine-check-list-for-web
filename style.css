@@ -42,7 +42,7 @@ th {
 
 select,
 button {
-  font-family: 'Meiryo UI', Meiryo, 'メイリオ', Osaka, 'MS PGothic', arial, helvetica, sans-serif;
+  font-family: inherit;
   outline: none;
 }
 
@@ -57,23 +57,103 @@ button {
   display: flex;
 }
 
-.menu-dropdown {
+.menu-dropdown-select,
+.menu-dropdown-button {
   background-color: transparent;
   border: solid 1px transparent;
   border-radius: 0;
   font-size: 1.3rem;
   margin: 0.2rem 0;
+  outline: none;
   position: relative;
+  user-select: none;
 }
 
-.menu-dropdown:hover {
-  background-color: #FAFAFA;
+.menu-dropdown-select:hover,
+.menu-dropdown-button:hover {
+  background-color: #C2E0FF;
   border-color: #3399FF;
 }
 
-.menu-dropdown:active {
+.menu-dropdown-select:active,
+.menu-dropdown-button:active,
+.menu-dropdown-button:focus {
   background-color: #FAFAFA;
   border-color: #808080;
+}
+
+.menu-dropdown-button:focus {
+  border-bottom: none;
+}
+
+.menu-dropdown-text {
+  position: relative;
+  z-index: 2;
+}
+
+.menu-dropdown-text {
+  margin-bottom: -1px;
+  padding: 0 0.7rem 0.2rem;
+}
+
+.menu-dropdown-button:focus > .menu-dropdown-text {
+  border-bottom: solid 1px #FDFDFD;
+}
+
+.menu-dropdown-outer {
+  background: linear-gradient(to right, #FCFCFC, #F1F1F1 24px, #FDFDFD 24px);
+  border: solid 1px #808080;
+  left: -1px;
+  padding: 1px;
+  position: absolute;
+  z-index: 1;
+}
+
+.menu-dropdown-button:focus > .menu-dropdown-outer {
+  display: initial;
+}
+
+.menu-dropdown {
+  border: solid 1px transparent;
+  font-size: 1.2rem;
+  padding: 2px 33px 2px 33px;
+  position: relative;
+}
+
+*:checked + .menu-dropdown-checkbox {
+  border: solid 1px #3399ff;
+  background-color: #C4E1FF;
+  height: 18px;
+  left: 0;
+  position: absolute;
+  width: 18px;
+}
+
+.menu-dropdown:hover > .menu-dropdown-checkbox {
+  background-color: #99ccff;
+}
+
+*:checked + .menu-dropdown-checkbox::before {
+  border-left: solid 2px #339933;
+  border-bottom: solid 2px #339933;
+  content: " ";
+  filter: drop-shadow(0 0 2px white);
+  height: 4px;
+  position: absolute;
+  transform: translate(4px, 5px) rotate(-40deg);
+  width: 9px;
+}
+
+.menu-dropdown:hover {
+  background-color: #C2E0FF;
+  border-color: #3399ff;
+}
+
+.menu-dropdown-hr {
+  background-color: #BDBDBD;
+  height: 1px;
+  margin: 3px 0 2px 31px;
+  width: calc(100% - 31px);
 }
 
 .control {
@@ -81,6 +161,12 @@ button {
   background-color: #FFFFFF;
   display: flex;
   font-size: 1.2rem;
+  padding: 0.1rem 0.8rem;
+}
+
+.content {
+  background-color: #FFFFFF;
+  font-size: 1.3rem;
   padding: 0.1rem 0.8rem;
 }
 
@@ -121,12 +207,26 @@ button {
   background-color: white;
 }
 
+.progress-table:not(.show-vis-col) tr:not(.visible),
+.progress-table:not(.show-vis-col) th:nth-child(2),
+.progress-table:not(.show-vis-col) td:nth-child(2),
+.hide-dec-col th:nth-child(6),
+.hide-dec-col td:nth-child(6),
+.hide-inc-col th:nth-child(7),
+.hide-inc-col td:nth-child(7),
+.hide-nxd-col th:nth-child(8),
+.hide-nxd-col td:nth-child(8) {
+  display: none;
+}
+
 .progress-table th:nth-child(2),
 .progress-table td:nth-child(2),
-.progress-table th:nth-child(5),
-.progress-table td:nth-child(5),
+.progress-table th:nth-child(3),
+.progress-table td:nth-child(3),
 .progress-table th:nth-child(6),
-.progress-table td:nth-child(6) {
+.progress-table td:nth-child(6),
+.progress-table th:nth-child(7),
+.progress-table td:nth-child(7) {
   text-align: center;
 }
 
@@ -134,6 +234,10 @@ button {
 .stamina-table td,
 .island-tbody td {
   text-align: right;
+}
+
+.progress-table tbody tr:hover {
+  background-color: #7fffd4
 }
 
 .island-tbody td:nth-child(1) {
@@ -166,6 +270,19 @@ button {
   position: absolute;
   top: 50%;
   transform: translateY(-50%) translateX(-50%);
+}
+
+.progress-bar-input {
+  background-color: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
+  outline: none;
+  width: 1rem;
+}
+
+.progress-bar-input:focus {
+  background-color: #FFFFFF;
 }
 
 .progress-button {
@@ -250,7 +367,6 @@ button {
 }
 
 .caution {
-  background-color: white;
   color: #C00000;
   font-weight: bold;
 }
